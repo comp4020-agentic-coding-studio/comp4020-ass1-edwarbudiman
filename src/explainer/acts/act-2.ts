@@ -105,11 +105,12 @@ function compositionChart(state: State): string {
     { className: "axis-bars" },
   );
 
+  // The thinnest rank is marked in the bar's weight, not with `aria-pressed`:
+  // that attribute belongs to toggle buttons, and on a label it announces a
+  // pressed state that does not exist. The slot below names the rank in
+  // words, which is the text equivalent that actually carries.
   const labels = axisRow(
-    RANKS.map((rank) => {
-      const low = varied && weights[rank] === min;
-      return `<div class="draw"${low ? ' aria-pressed="true"' : ""}>${escapeHtml(rank)}</div>`;
-    }),
+    RANKS.map((rank) => `<div class="draw">${escapeHtml(rank)}</div>`),
   );
 
   return (
@@ -168,8 +169,7 @@ function renderLockedOpening(state: State): string {
 
   return section(
     "act-2",
-    `<p class="plate-label">Act 2 · locked opening, then free play</p>` +
-      `<p class="eyebrow">Act 2</p>` +
+    `<p class="eyebrow">Act 2</p>` +
       `<h2>${escapeHtml(ACT_2_HEADING)}</h2>` +
       `<div class="locked">` +
       `<p class="locked-flag">Locked · the same hand you just played</p>` +
@@ -216,8 +216,7 @@ function renderLockedOpening(state: State): string {
 function renderFreePlayPlaceholder(state: State): string {
   return section(
     "act-2",
-    `<p class="plate-label">Act 2 · free play</p>` +
-      `<p class="eyebrow">Act 2</p>` +
+    `<p class="eyebrow">Act 2</p>` +
       `<h2>${escapeHtml(ACT_2_HEADING)}</h2>` +
       `<p class="lede">Free play, from this same Shoe and Running Count, is on its way.</p>` +
       `<p class="data">Deal Model: ${escapeHtml(state.model)}</p>`,
