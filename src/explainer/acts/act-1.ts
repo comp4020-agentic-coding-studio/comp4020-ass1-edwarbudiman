@@ -8,13 +8,25 @@
  * is dealt rather than scripted.
  */
 
-import { bustSplit, drawOutcomes, handTotal, type PlayOut } from "../../engine/index.ts";
-import { formatPercent } from "../format.ts";
+import {
+  bustSplit,
+  dealerDistribution,
+  drawOutcomes,
+  freshShoe,
+  handTotal,
+  removeCards,
+  simulateTrials,
+  type PlayOut,
+} from "../../engine/index.ts";
+import { formatCount, formatPercent } from "../format.ts";
 import { actionButton, escapeHtml, section } from "../render.ts";
-import type { State } from "../state.ts";
+import { PLAYOUT_TRIALS, type State } from "../state.ts";
 import { axisRow } from "../views/axis.ts";
 import { faceDownCard, handHtml, rankCards } from "../views/card.ts";
+import { countReadoutHtml, countRulePanelHtml } from "../views/count-readout.ts";
+import { histogramHtml, histogramText } from "../views/histogram.ts";
 import { tableHtml } from "../views/table.ts";
+import { waffleSectionHtml } from "../views/waffle.ts";
 
 const ACT_1_HEADING = "Act 1 — How blackjack works";
 
@@ -194,9 +206,101 @@ function renderBeat3(state: State): string {
   );
 }
 
+/**
+ * Beat 4: the thousand, and the count arrives.
+ *
+ * `state.hand` and `state.dealer` never change through Act 1 — only
+ * `state.shoe` gains the Play-out's actually-dealt cards, via `dealBeat3`
+ * (`transitions.ts`) — so the shoe as it stood at the moment of decision is
+ * always reconstructable as `openingShoe` below, and every figure this beat
+ * shows is computed from it or from `state.playOut`, never a separately
+ * stored snapshot. `openingShoe` is exactly the shoe beat 2's own survive/bust
+ * split read from, so the odds pair restates the same 38.8% / 61.2% rather
+ * than drifting once more cards have left the (now further depleted) shoe.
+ *
+ * `simulateTrials` is handed a fresh Shoe (never `state.shoe`) because it
+ * removes the hand and dealer cards itself — passing the same fresh Shoe,
+ * hand, dealer, model and default seed `dealBeat3` used means trial zero of
+ * this run is bit-for-bit the same call, so the visitor's own Play-out is
+ * genuinely inside the 1,000, not a lookalike stitched in beside them.
+ */
+function renderBeat4(state: State): string {
+  const play = state.playOut;
+  if (!play) return section("act-1", `<h2>${escapeHtml(ACT_1_HEADING)}</h2>`);
+
+  const decision = state.decision ?? "hit";
+  const openingShoe = removeCards(freshShoe(), [...state.hand, ...state.dealer]);
+
+  const dealerTotal = handTotal(play.dealerRanks);
+  const dealerTable = tableHtml([
+    {
+      label: "Dealer",
+      handHtml: handHtml(
+        rankCards(play.dealerRanks, { bustedLastCard: play.dealerBusted }),
+      ),
+      total: dealerTotal.total,
+      busted: play.dealerBusted,
+    },
+  ]);
+  const upcard = state.dealer[0]!;
+  const holeCard = play.dealerRanks[1] ?? upcard;
+
+  const split = bustSplit(state.hand, openingShoe, state.model);
+  const survivedLabel = decision === "hit" ? "Your hit survived" : "A hit would have survived";
+
+  const dealerDist = dealerDistribution(
+    state.dealer,
+    openingShoe,
+    state.model,
+    PLAYOUT_TRIALS,
+  );
+
+  const trials = simulateTrials(
+    { hand: state.hand, dealer: state.dealer, shoe: freshShoe(), model: state.model },
+    decision,
+    PLAYOUT_TRIALS,
+  );
+
+  return section(
+    "act-1",
+    `<h3>What the dealer had</h3>` +
+      dealerTable +
+      `<p class="note">The hole card was ${escapeHtml(holeCard)}. Beat one only ` +
+      `ever showed you the ${escapeHtml(upcard)}, which is all you get to decide ` +
+      `on at a real table.</p>` +
+      `<dl class="odds">` +
+      `<div><dt>${escapeHtml(survivedLabel)}</dt>` +
+      `<dd>${escapeHtml(formatPercent(split.surviveChance))}</dd></div>` +
+      `<div class="miss"><dt>It could have busted</dt>` +
+      `<dd>${escapeHtml(formatPercent(split.bustChance))}</dd></div>` +
+      `</dl>` +
+      `<h3 style="margin-top: 2rem">What the dealer made · ` +
+      `${escapeHtml(formatCount(PLAYOUT_TRIALS))} hands` +
+      `<button class="why" type="button" popovertarget="why-dealer" ` +
+      `style="anchor-name: --a-dealer" aria-label="What this chart means">?</button>` +
+      `</h3>` +
+      `<div id="why-dealer" popover style="position-anchor: --a-dealer">` +
+      `<p class="pop-title">Reading this</p>` +
+      `<p>The hand was already bad before you touched it. A dealer showing a ` +
+      `ten reaches twenty about a third of the time, and busts only about one ` +
+      `time in five — so waiting for them to fail is not a plan.</p>` +
+      `</div>` +
+      `<p class="vh">${escapeHtml(histogramText(dealerDist.totals, dealerDist.trials))}</p>` +
+      histogramHtml(dealerDist.totals, dealerDist.trials) +
+      `<h3 style="margin-top: 2rem">Every one of those ` +
+      `${escapeHtml(formatCount(PLAYOUT_TRIALS))} hands</h3>` +
+      waffleSectionHtml(trials, state.playoutProgress, decision) +
+      countReadoutHtml(state.runningCount, state.shoe.remaining) +
+      countRulePanelHtml() +
+      actionButton("replay-other-decision", "Try the other decision", {
+        className: "btn btn--advance",
+      }),
+  );
+}
+
 export function renderAct1(state: State): string {
   if (state.beat === 1) return renderBeat1(state);
   if (state.beat === 2) return renderBeat2(state);
   if (state.beat === 3) return renderBeat3(state);
-  return section("act-1", `<h2>${escapeHtml(ACT_1_HEADING)}</h2>`);
+  return renderBeat4(state);
 }

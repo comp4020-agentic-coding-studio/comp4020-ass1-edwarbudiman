@@ -139,24 +139,49 @@ export function dealerDistribution(
 }
 
 /**
- * Run the same Decision many times from the same table.
+ * Run the same Decision many times from the same table, and return every
+ * trial's Play-out in the order it was dealt.
  *
  * The shoe each trial starts from is the table's shoe with the dealer's cards
  * and the visitor's cards already removed — those are on the table, not in the
  * shoe, and forgetting that is how a simulation quietly deals the same card
  * twice.
+ *
+ * This is the only simulation loop: `simulate` below reduces this same array
+ * into aggregate counts rather than sampling a second time, so the two can
+ * never drift apart. Beat 4's waffle reads this array directly — trial zero
+ * is mathematically identical to the solo `playOut` call `dealBeat3` already
+ * made (same table, same decision, same seed, same first `rng` draw), so the
+ * visitor's own hand is genuinely one of these, not a lookalike stitched in.
  */
+export function simulateTrials(
+  table: Table,
+  decision: Decision,
+  trials: number,
+  seed: number = SEED,
+): PlayOut[] {
+  const rng = makeRng(seed);
+  const start: Table = {
+    ...table,
+    shoe: removeCards(table.shoe, [...table.hand, ...table.dealer]),
+  };
+
+  const results: PlayOut[] = [];
+  for (let trial = 0; trial < trials; trial++) {
+    results.push(playOut(start, decision, rng));
+  }
+  return results;
+}
+
+/** The same many trials, reduced into aggregate settlement and dealer-total
+ *  counts. See `simulateTrials` — this samples nothing itself. */
 export function simulate(
   table: Table,
   decision: Decision,
   trials: number,
   seed: number = SEED,
 ): Distribution {
-  const rng = makeRng(seed);
-  const start: Table = {
-    ...table,
-    shoe: removeCards(table.shoe, [...table.hand, ...table.dealer]),
-  };
+  const results = simulateTrials(table, decision, trials, seed);
 
   const settlements: Record<Settlement, number> = { lost: 0, push: 0, won: 0 };
   const dealerTotals = Object.fromEntries(
@@ -165,8 +190,7 @@ export function simulate(
   let playerBusts = 0;
   let dealerPlayed = 0;
 
-  for (let trial = 0; trial < trials; trial++) {
-    const result = playOut(start, decision, rng);
+  for (const result of results) {
     settlements[result.settlement]++;
     if (result.playerBusted) {
       playerBusts++;
