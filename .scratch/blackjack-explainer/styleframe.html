@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Styleframe — Blackjack Probability Explainer</title>
+    <title>Styleframe v2 — Blackjack Probability Explainer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -11,25 +11,34 @@
       rel="stylesheet"
     />
     <style>
-      /* ------------------------------------------------------------------
-         TWO-INK TABLE PRINT — visual system
+      /* ==================================================================
+         TWO-INK TABLE PRINT — v2
          Roles, not literals. Night mode is the same press run on dark stock.
-      ------------------------------------------------------------------ */
+         Depth is quarantined to cards and the shoe. Everything else is flat.
+      ================================================================== */
       :root {
-        --stock: #e7e6e1; /* the table: ground */
-        --card: #fbfaf7; /* card stock: lighter than the table */
-        --ink: #14110f; /* everything structural, and SURVIVE */
-        --ink-dim: #636057; /* secondary, spent, captions */
-        --red: #c8102e; /* BUST and LOSS. Nothing else, ever. */
+        --stock: #e7e6e1;
+        --card: #fbfaf7;
+        --card-lit: #ffffff;
+        --card-edge: #b3afa4;
+        --card-hi: #ffffff;
+        --ink: #14110f;
+        --ink-dim: #636057;
+        --red: #c8102e;
         --red-wash: #c8102e1f;
-        --rule: #b8b6ae; /* hairlines, tracks, pushes */
-        --pin: #14110f; /* the one solid mark: your actual result */
+        --rule: #b8b6ae;
+        --pin: #14110f;
+        --shadow-near: rgb(20 17 15 / 0.16);
+        --shadow-far: rgb(20 17 15 / 0.2);
 
         --face-display: "Archivo Narrow", "Helvetica Neue", sans-serif;
         --face-body: "Source Serif 4", Georgia, serif;
         --face-data: "JetBrains Mono", ui-monospace, monospace;
 
-        --step: 0.5rem;
+        /* the thirteen-rank axis. One template, every Act. */
+        --axis-cols: repeat(5, 1fr) 2px repeat(8, 1fr);
+        --axis-gap: 0.2rem;
+
         --gutter: 1.25rem;
         color-scheme: light;
       }
@@ -38,12 +47,17 @@
         :root:not([data-theme="light"]) {
           --stock: #16140f;
           --card: #24211b;
+          --card-lit: #302c23;
+          --card-edge: #4a4539;
+          --card-hi: #ffffff1f;
           --ink: #edeae1;
           --ink-dim: #a19b8e;
           --red: #f0564a;
-          --red-wash: #f0564a1f;
+          --red-wash: #f0564a24;
           --rule: #46423a;
           --pin: #edeae1;
+          --shadow-near: rgb(0 0 0 / 0.5);
+          --shadow-far: rgb(0 0 0 / 0.55);
           color-scheme: dark;
         }
       }
@@ -51,12 +65,17 @@
       :root[data-theme="dark"] {
         --stock: #16140f;
         --card: #24211b;
+        --card-lit: #302c23;
+        --card-edge: #4a4539;
+        --card-hi: #ffffff1f;
         --ink: #edeae1;
         --ink-dim: #a19b8e;
         --red: #f0564a;
-        --red-wash: #f0564a1f;
+        --red-wash: #f0564a24;
         --rule: #46423a;
         --pin: #edeae1;
+        --shadow-near: rgb(0 0 0 / 0.5);
+        --shadow-far: rgb(0 0 0 / 0.55);
         color-scheme: dark;
       }
 
@@ -81,13 +100,13 @@
         outline-offset: 3px;
       }
 
-      /* ---------- shell ---------- */
-
       .page {
         max-width: 33rem;
         margin: 0 auto;
         padding: 0 var(--gutter) 5rem;
       }
+
+      /* ---------- masthead ---------- */
 
       .masthead {
         display: flex;
@@ -103,7 +122,6 @@
         font-weight: 700;
         font-size: clamp(1.3125rem, 6vw, 2.125rem);
         line-height: 1.08;
-        letter-spacing: 0.005em;
         text-transform: uppercase;
         margin: 0;
         max-width: 13ch;
@@ -150,7 +168,6 @@
         text-decoration-thickness: 2px;
       }
 
-      /* the one line of table rules, set like it is printed on the felt */
       .rules {
         font-family: var(--face-display);
         font-size: 0.6875rem;
@@ -163,11 +180,7 @@
         border-bottom: 1px solid var(--rule);
       }
 
-      /* ---------- act structure ---------- */
-
-      .act {
-        padding-top: 2.25rem;
-      }
+      /* ---------- headings and prose ---------- */
 
       .eyebrow {
         font-family: var(--face-display);
@@ -194,7 +207,7 @@
         font-weight: 700;
         letter-spacing: 0.16em;
         text-transform: uppercase;
-        margin: 0 0 0.65rem;
+        margin: 0 0 0.7rem;
         color: var(--ink-dim);
       }
 
@@ -207,36 +220,78 @@
         font-size: 1.1875rem;
       }
 
-      /* ---------- the table ---------- */
+      .note {
+        font-family: var(--face-body);
+        font-size: 0.9375rem;
+        line-height: 1.55;
+        color: var(--ink-dim);
+        margin: 0.85rem 0 0;
+        max-width: 42ch;
+      }
+
+      .data {
+        font-family: var(--face-data);
+        font-size: 0.75rem;
+        font-variant-numeric: tabular-nums;
+        color: var(--ink-dim);
+      }
+
+      /* ==================================================================
+         CARDS — the only objects with depth on the whole page
+      ================================================================== */
 
       .table {
         display: grid;
-        gap: 1.25rem;
-        padding: 1.5rem 0;
+        gap: 1.5rem;
+        padding: 1.75rem 0;
       }
 
       .seat {
         display: flex;
         align-items: flex-end;
-        gap: 0.75rem;
+        gap: 1.1rem;
       }
 
       .hand {
         display: flex;
-        gap: 0.4rem;
+        padding: 0.4rem 0;
       }
 
       .card {
         width: 3.75rem;
         aspect-ratio: 5 / 7;
-        background: var(--card);
-        border: 1px solid var(--ink);
-        border-radius: 7px;
+        border-radius: 8px;
         position: relative;
         display: grid;
         place-items: center;
-        /* cards are the only rounded, tactile objects on a flat printed field */
-        box-shadow: 0 1px 0 var(--rule);
+        flex: none;
+        background:
+          linear-gradient(177deg, var(--card-lit) 0%, var(--card) 55%);
+        border: 1px solid var(--card-edge);
+        /* stock thickness, then contact, then cast */
+        box-shadow:
+          inset 0 1px 0 var(--card-hi),
+          0 1px 1px var(--shadow-near),
+          0 5px 10px -3px var(--shadow-far),
+          0 14px 22px -12px var(--shadow-far);
+      }
+
+      /* dealt by a hand, not laid out by a grid */
+      .hand .card:nth-child(1) {
+        rotate: -2.5deg;
+        z-index: 1;
+      }
+
+      .hand .card:nth-child(2) {
+        rotate: 1.5deg;
+        margin-left: -0.85rem;
+        z-index: 2;
+      }
+
+      .hand .card:nth-child(3) {
+        rotate: 5deg;
+        margin-left: -0.85rem;
+        z-index: 3;
       }
 
       .card .rank {
@@ -249,26 +304,51 @@
 
       .card .suit {
         position: absolute;
-        top: 0.25rem;
-        left: 0.35rem;
+        top: 0.3rem;
+        left: 0.4rem;
         font-size: 0.6875rem;
         color: var(--ink-dim);
       }
 
-      .card--face-down {
-        background: repeating-linear-gradient(
-          45deg,
-          var(--stock) 0 3px,
-          var(--card) 3px 6px
-        );
+      /* guilloché back */
+      .card--back {
+        background:
+          repeating-linear-gradient(
+            45deg,
+            transparent 0 4px,
+            var(--card-edge) 4px 5px
+          ),
+          repeating-linear-gradient(
+            -45deg,
+            transparent 0 4px,
+            var(--card-edge) 4px 5px
+          ),
+          linear-gradient(177deg, var(--card-lit) 0%, var(--card) 55%);
+        background-clip: padding-box;
+      }
+
+      .card--back::after {
+        content: "";
+        position: absolute;
+        inset: 5px;
+        border: 1px solid var(--card-edge);
+        border-radius: 4px;
+      }
+
+      .card--bust {
+        border-color: var(--red);
+      }
+
+      .card--bust .rank {
+        color: var(--red);
       }
 
       .total {
         font-family: var(--face-data);
         font-size: 0.75rem;
-        letter-spacing: 0.02em;
         color: var(--ink-dim);
         padding-bottom: 0.35rem;
+        margin: 0;
       }
 
       .total b {
@@ -277,45 +357,57 @@
         font-weight: 700;
         font-size: 2rem;
         line-height: 1;
-        letter-spacing: 0.01em;
         color: var(--ink);
       }
 
-      /* ---------- the decision ---------- */
+      .total .busted {
+        color: var(--red);
+        font-family: var(--face-display);
+        font-weight: 700;
+        letter-spacing: 0.12em;
+      }
+
+      /* ---------- decision ---------- */
 
       .decision {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 0.75rem;
-        padding: 0.5rem 0 1.25rem;
+        padding: 0.5rem 0 1rem;
       }
 
-      .decision button {
+      .btn {
         font-family: var(--face-display);
         font-size: 1rem;
         font-weight: 700;
         letter-spacing: 0.18em;
         text-transform: uppercase;
-        /* equal weight on both: the page must not nudge the intuition */
         color: var(--ink);
         background: var(--card);
         border: 1.5px solid var(--ink);
         border-radius: 0;
-        padding: 1rem 0.5rem;
+        padding: 1rem 0.75rem;
         cursor: pointer;
       }
 
-      .decision button:hover {
+      .btn:hover {
         background: var(--ink);
         color: var(--stock);
       }
 
-      /* ---------- the thirteen draws ---------- */
+      .btn--advance {
+        width: 100%;
+        margin-top: 1.5rem;
+      }
 
-      .draws {
+      /* ==================================================================
+         THE THIRTEEN-RANK AXIS — one template, three Acts
+      ================================================================== */
+
+      .axis-row {
         display: grid;
-        grid-template-columns: repeat(5, 1fr) 2px repeat(8, 1fr);
-        gap: 0.2rem;
+        grid-template-columns: var(--axis-cols);
+        gap: var(--axis-gap);
         align-items: start;
       }
 
@@ -330,6 +422,8 @@
         font-size: 0.75rem;
         font-weight: 500;
         color: var(--ink);
+        padding: 0;
+        cursor: pointer;
       }
 
       .draw--bust {
@@ -338,129 +432,283 @@
         color: var(--red);
       }
 
-      /* The bust line. The split is a PLACE on the strip, not a colour key —
-         so it pokes out past the cards and gets read as an edge. */
-      .draws .split {
+      .draw[aria-pressed="true"] {
+        background: var(--ink);
+        color: var(--stock);
+        border-color: var(--ink);
+      }
+
+      /* the bust line is a PLACE on the strip, not a colour key */
+      .split {
         align-self: stretch;
         background: var(--ink);
         margin: -0.5rem 0;
       }
 
-      .draws-key {
+      .axis-key {
         display: flex;
         justify-content: space-between;
         font-family: var(--face-data);
         font-size: 0.6875rem;
         letter-spacing: 0.04em;
         text-transform: uppercase;
-        padding-top: 0.6rem;
+        padding-top: 0.75rem;
       }
 
-      .draws-key .survive {
-        color: var(--ink);
-      }
-
-      .draws-key .bust {
+      .axis-key .bust {
         color: var(--red);
       }
 
-      /* Prose is always the serif. The mono is for numbers that move, and
-         using it for sentences is what makes a page look like a terminal. */
-      .figure-note {
-        font-family: var(--face-body);
-        font-size: 0.9375rem;
-        line-height: 1.55;
-        color: var(--ink-dim);
-        margin: 0.85rem 0 0;
-        max-width: 42ch;
-      }
-
-      /* ---------- the distribution and the pin (signature) ---------- */
-
-      .dist {
-        padding-top: 0.5rem;
-      }
-
-      .dist-counter {
-        font-family: var(--face-data);
-        font-size: 0.75rem;
-        color: var(--ink-dim);
-        display: flex;
-        justify-content: space-between;
-        padding-bottom: 0.45rem;
-      }
-
-      .dist-track {
-        display: flex;
-        height: 2.75rem;
-        border: 1px solid var(--ink);
+      /* Act 2: how many of each rank are still in the shoe. Charted from zero
+         on a full scale — probability differences under depletion are ~0.15%
+         and no honest bar can show them, but the counts move visibly. */
+      .axis-bars {
+        align-items: end;
+        height: 6rem;
+        border-bottom: 1px solid var(--ink);
         position: relative;
       }
 
-      /* stacked at 390, side by side from 60rem */
-      .spread > * + * {
-        margin-top: 2.5rem;
-      }
-
-      .seg {
-        display: flex;
-        align-items: center;
-        padding-inline: 0.5rem;
-        font-family: var(--face-data);
-        font-size: 0.6875rem;
-        letter-spacing: 0.06em;
-        overflow: hidden;
-        white-space: nowrap;
-      }
-
-      .seg--lost {
-        background: var(--red-wash);
-        color: var(--red);
-        border-right: 1px solid var(--red);
-      }
-
-      .seg--push {
-        background: none;
-        color: var(--ink-dim);
-        border-right: 1px solid var(--rule);
-      }
-
-      .seg--won {
-        background: none;
-        color: var(--ink);
-      }
-
-      /* THE PIN — the only solid mark on the page. Your one real result,
-         standing inside the range of results it came from. */
-      .pin {
+      /* a full rank: six decks, four suits */
+      .axis-bars::before {
+        content: "";
         position: absolute;
-        top: -0.5rem;
-        bottom: -0.5rem;
-        width: 3px;
-        background: var(--pin);
+        inset: 0 0 auto;
+        border-top: 1px dashed var(--rule);
       }
 
-      .pin-label {
-        display: flex;
+      .axis-full-label {
+        font-family: var(--face-data);
+        font-size: 0.625rem;
+        color: var(--ink-dim);
+        text-align: right;
+        margin: 0 0 0.1rem;
+      }
+
+      /* the top edge is the data line; the fill is just body */
+      .bar {
+        background: color-mix(in srgb, var(--ink) 14%, transparent);
+        border-top: 2px solid var(--ink);
+        min-height: 2px;
+      }
+
+      .bar--low {
+        background: var(--red-wash);
+        border-top-color: var(--red);
+      }
+
+      /* Act 3: Hi-Lo values, same columns */
+      .axis-values {
+        padding-top: 0.4rem;
         font-family: var(--face-data);
         font-size: 0.6875rem;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        padding-top: 0.9rem;
+        text-align: center;
+        color: var(--ink-dim);
+      }
+
+      .axis-values span {
+        display: block;
+      }
+
+      .axis-values .plus {
         color: var(--ink);
       }
 
-      .pin-label span {
-        border-top: 1px solid var(--ink);
-        padding-top: 0.3rem;
+      .axis-values .minus {
+        color: var(--red);
       }
 
-      /* ---------- shoe and running count (act 3) ---------- */
+      .axis-values .just-left {
+        background: var(--ink);
+        color: var(--stock);
+        border-radius: 2px;
+      }
 
-      .meters {
+      /* ---------- the detail slot (per-rank, pinned not floating) ---------- */
+
+      .slot {
+        margin-top: 1rem;
+        border: 1px solid var(--ink);
+        padding: 0.85rem 1rem;
         display: grid;
-        gap: 1.25rem;
-        padding: 1rem 0 0;
+        gap: 0.15rem;
+      }
+
+      .slot-rank {
+        font-family: var(--face-display);
+        font-size: 1.25rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin: 0;
+      }
+
+      .slot dl {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.1rem 0.9rem;
+        margin: 0.35rem 0 0;
+        font-family: var(--face-data);
+        font-size: 0.8125rem;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .slot dt {
+        color: var(--ink-dim);
+      }
+
+      .slot dd {
+        margin: 0;
+      }
+
+      .slot .expectation {
+        color: var(--ink-dim);
+      }
+
+      /* ==================================================================
+         FIGURES
+      ================================================================== */
+
+      /* dealer final totals — a real ordered histogram */
+      .hist {
+        display: grid;
+        gap: 0.35rem;
+      }
+
+      .hist-row {
+        display: grid;
+        grid-template-columns: 2.75rem 1fr 2.75rem;
+        align-items: center;
+        gap: 0.6rem;
+        font-family: var(--face-data);
+        font-size: 0.75rem;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .hist-label {
+        text-align: right;
+        color: var(--ink-dim);
+      }
+
+      .hist-track {
+        height: 1.05rem;
+        border: 1px solid var(--rule);
+      }
+
+      .hist-track i {
+        display: block;
+        height: 100%;
+        background: var(--ink);
+      }
+
+      .hist-row--bust .hist-label,
+      .hist-row--bust .hist-value {
+        color: var(--red);
+      }
+
+      .hist-row--bust .hist-track {
+        border-color: var(--red);
+      }
+
+      .hist-row--bust .hist-track i {
+        background: var(--red);
+      }
+
+      /* THE WAFFLE — one mark per play-out. Signature. */
+      .waffle {
+        display: grid;
+        grid-template-columns: repeat(40, 1fr);
+        gap: 1px;
+        border: 1px solid var(--rule);
+        padding: 3px;
+      }
+
+      .waffle span {
+        aspect-ratio: 1;
+        background: var(--rule);
+      }
+
+      .waffle .lost {
+        background: var(--red-wash);
+        box-shadow: inset 0 0 0 1px var(--red-wash);
+      }
+
+      .waffle .won {
+        background: color-mix(in srgb, var(--ink) 22%, transparent);
+      }
+
+      .waffle .push {
+        background: color-mix(in srgb, var(--rule) 55%, transparent);
+      }
+
+      .waffle .pending {
+        background: transparent;
+      }
+
+      /* your one result: the only solid mark on the page */
+      .waffle .you {
+        background: var(--pin);
+        outline: 2px solid var(--pin);
+        outline-offset: 2px;
+      }
+
+      .waffle-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-family: var(--face-data);
+        font-size: 0.75rem;
+        font-variant-numeric: tabular-nums;
+        color: var(--ink-dim);
+        padding-bottom: 0.5rem;
+      }
+
+      .waffle-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.9rem;
+        font-family: var(--face-data);
+        font-size: 0.6875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding-top: 0.7rem;
+        color: var(--ink-dim);
+      }
+
+      .waffle-legend i {
+        display: inline-block;
+        width: 0.6rem;
+        height: 0.6rem;
+        margin-right: 0.35rem;
+        vertical-align: -1px;
+      }
+
+      /* ---------- the shoe: an edge-on stack of card edges ---------- */
+
+      .shoe {
+        display: flex;
+        height: 1.5rem;
+        border: 1px solid var(--card-edge);
+        border-radius: 3px;
+        background: var(--stock);
+        overflow: hidden;
+        box-shadow:
+          inset 0 1px 0 var(--card-hi),
+          0 2px 4px -1px var(--shadow-near);
+      }
+
+      .shoe .remaining {
+        background:
+          repeating-linear-gradient(
+            90deg,
+            var(--card) 0 2px,
+            var(--card-edge) 2px 3px
+          );
+        border-right: 2px solid var(--ink);
+      }
+
+      .shoe .spent {
+        flex: 1;
       }
 
       .meter-head {
@@ -470,7 +718,7 @@
         font-family: var(--face-data);
         font-size: 0.75rem;
         color: var(--ink-dim);
-        padding-bottom: 0.4rem;
+        padding-bottom: 0.45rem;
       }
 
       .meter-head b {
@@ -478,42 +726,105 @@
         font-size: 1.5rem;
         font-weight: 700;
         color: var(--ink);
-        letter-spacing: 0.02em;
+        font-variant-numeric: tabular-nums;
       }
 
-      .shoe {
-        height: 0.75rem;
-        border: 1px solid var(--ink);
+      /* ---------- deal model control ---------- */
+
+      .models {
+        display: grid;
+        gap: 0.5rem;
+        padding-bottom: 1.5rem;
+      }
+
+      .model {
         display: flex;
-      }
-
-      .shoe .left {
-        background: var(--ink);
-      }
-
-      .count-strip {
-        display: flex;
-        gap: 0.25rem;
-        align-items: center;
-        font-family: var(--face-data);
-        font-size: 0.6875rem;
-        color: var(--ink-dim);
-        flex-wrap: wrap;
-      }
-
-      .chip {
+        gap: 0.7rem;
+        align-items: baseline;
+        text-align: left;
+        width: 100%;
+        font-family: var(--face-body);
+        font-size: 1rem;
+        color: var(--ink);
+        background: none;
         border: 1px solid var(--rule);
-        border-radius: 2px;
-        padding: 0.1rem 0.3rem;
+        border-radius: 0;
+        padding: 0.7rem 0.85rem;
+        cursor: pointer;
+      }
+
+      .model[aria-pressed="true"] {
+        border-color: var(--ink);
+        border-width: 1.5px;
+        background: var(--card);
+      }
+
+      .model .mark {
+        font-family: var(--face-data);
+        font-size: 0.8125rem;
+        color: var(--ink-dim);
+      }
+
+      .model[aria-pressed="true"] .mark {
         color: var(--ink);
       }
 
-      .chip--minus {
-        border-color: var(--red);
-        color: var(--red);
+      .model .name {
+        font-family: var(--face-display);
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        font-size: 0.8125rem;
       }
 
-      /* ---------- labels and the close ---------- */
+      .model small {
+        display: block;
+        font-family: var(--face-body);
+        font-size: 0.875rem;
+        color: var(--ink-dim);
+        letter-spacing: 0;
+        text-transform: none;
+      }
+
+      /* ---------- reference drawer ---------- */
+
+      .reference {
+        margin-top: 2.5rem;
+        border-top: 1px solid var(--rule);
+        padding-top: 0.75rem;
+      }
+
+      .reference summary {
+        font-family: var(--face-display);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--ink-dim);
+        cursor: pointer;
+        padding: 0.35rem 0;
+      }
+
+      .reference dl {
+        margin: 0.5rem 0 0;
+        font-size: 0.9375rem;
+      }
+
+      .reference dt {
+        font-family: var(--face-display);
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        padding-top: 0.7rem;
+      }
+
+      .reference dd {
+        margin: 0.1rem 0 0;
+        color: var(--ink-dim);
+      }
+
+      /* ---------- labels and close ---------- */
 
       .stamp {
         display: inline-block;
@@ -529,7 +840,7 @@
       }
 
       .close {
-        padding: 3rem 0 0;
+        padding-top: 3rem;
         border-top: 1px solid var(--ink);
         margin-top: 3rem;
       }
@@ -539,7 +850,6 @@
         font-weight: 700;
         font-size: clamp(1.75rem, 9vw, 3rem);
         line-height: 1.02;
-        letter-spacing: 0.005em;
         text-transform: uppercase;
         margin: 0;
         max-width: 16ch;
@@ -549,7 +859,7 @@
 
       .plate {
         border-top: 1px dashed var(--rule);
-        margin-top: 2.5rem;
+        margin-top: 3rem;
         padding-top: 0.75rem;
       }
 
@@ -559,14 +869,13 @@
         letter-spacing: 0.08em;
         text-transform: uppercase;
         color: var(--ink-dim);
-        margin: 0 0 0.25rem;
+        margin: 0 0 1.25rem;
       }
 
       .swatches {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
         gap: 0.5rem;
-        padding-top: 0.75rem;
       }
 
       .swatch {
@@ -592,7 +901,7 @@
         letter-spacing: 0.06em;
       }
 
-      /* ---------- 1920: the table and the model, side by side ---------- */
+      /* ---------- 1920: cause and effect, side by side ---------- */
 
       @media (min-width: 60rem) {
         .page {
@@ -611,7 +920,6 @@
         }
 
         h1 {
-          font-size: 2.5rem;
           max-width: none;
         }
 
@@ -623,6 +931,15 @@
           font-size: 4.5rem;
           max-width: 20ch;
         }
+
+        .btn--advance {
+          width: auto;
+          min-width: 20rem;
+        }
+      }
+
+      .spread > * + * {
+        margin-top: 2.5rem;
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -653,9 +970,9 @@
         split
       </p>
 
-      <!-- ============ PLATE 1 — Act 1, before the Decision ============ -->
-      <section class="plate act" id="act-1">
-        <p class="plate-label">Plate 1 — Act 1, before the decision</p>
+      <!-- ================= BEAT 1 ================= -->
+      <section class="plate" id="act-1">
+        <p class="plate-label">Act 1 · beat 1 — before the decision</p>
         <p class="eyebrow">Act 1</p>
         <h2>You have sixteen</h2>
         <p class="lede">
@@ -669,7 +986,7 @@
               <div class="card">
                 <span class="suit">♠</span><span class="rank">10</span>
               </div>
-              <div class="card card--face-down" aria-label="Face-down card"></div>
+              <div class="card card--back" aria-label="Face-down card"></div>
             </div>
             <p class="total">Dealer<b>10</b></p>
           </div>
@@ -688,18 +1005,20 @@
         </div>
 
         <div class="decision">
-          <button type="button">Hit</button>
-          <button type="button">Stand</button>
+          <button class="btn" type="button">Hit</button>
+          <button class="btn" type="button">Stand</button>
         </div>
       </section>
 
-      <!-- ============ PLATE 2 — the thirteen Draws ============ -->
-      <section class="plate act">
-        <p class="plate-label">Plate 2 — Act 1, after the decision</p>
+      <!-- ================= BEAT 2 ================= -->
+      <section class="plate">
+        <p class="plate-label">Act 1 · beat 2 — every card that could come next</p>
+        <p class="data">You chose &nbsp;<b>HIT</b></p>
+
         <div class="spread">
           <div>
             <h3>Every card that could come next</h3>
-            <div class="draws">
+            <div class="axis-row">
               <div class="draw">A</div>
               <div class="draw">2</div>
               <div class="draw">3</div>
@@ -715,98 +1034,301 @@
               <div class="draw draw--bust">Q</div>
               <div class="draw draw--bust">K</div>
             </div>
-            <div class="draws-key">
-              <span class="survive">5 / 13 survive · 38.5%</span>
+            <div class="axis-key">
+              <span>5 / 13 survive · 38.5%</span>
               <span class="bust">8 / 13 bust · 61.5%</span>
             </div>
-            <p class="figure-note">
-              Ace through five keep you alive. Everything from six up busts you.
-              The line is where the strip changes hands.
+          </div>
+
+          <div>
+            <p>
+              Five ranks keep you alive. Eight bust you. That is the whole of the
+              choice, and it does not improve if you stand — standing hands the
+              hand to a dealer showing a ten and asks them not to make one.
+            </p>
+            <p class="note">
+              Both choices lose more often than they win. The better decision is
+              the one that loses less, and that is the whole definition of better
+              you are going to get.
+            </p>
+          </div>
+        </div>
+
+        <button class="btn btn--advance" type="button">Play my hand</button>
+      </section>
+
+      <!-- ================= BEAT 3 ================= -->
+      <section class="plate">
+        <p class="plate-label">Act 1 · beat 3 — your hand, dealt honestly</p>
+        <h3>Your hand</h3>
+
+        <div class="table">
+          <div class="seat">
+            <div class="hand">
+              <div class="card">
+                <span class="suit">♦</span><span class="rank">10</span>
+              </div>
+              <div class="card">
+                <span class="suit">♣</span><span class="rank">6</span>
+              </div>
+              <div class="card card--bust">
+                <span class="suit">♥</span><span class="rank">9</span>
+              </div>
+            </div>
+            <p class="total">You<b>26</b><span class="busted">Bust</span></p>
+          </div>
+        </div>
+
+        <p class="data">Dealt from the shoe. Not chosen.</p>
+
+        <p class="lede">
+          You busted. You also made the better decision. Both of those are true
+          at the same time, and holding both is the entire point of this page.
+        </p>
+
+        <button class="btn btn--advance" type="button">
+          Show me 1,000 more hands
+        </button>
+      </section>
+
+      <!-- ================= BEAT 4 ================= -->
+      <section class="plate">
+        <p class="plate-label">Act 1 · beat 4 — the thousand</p>
+
+        <div class="spread">
+          <div>
+            <h3>What the dealer made · 1,000 hands</h3>
+            <div class="hist">
+              <div class="hist-row">
+                <span class="hist-label">17</span>
+                <span class="hist-track"><i style="width: 33%"></i></span>
+                <span class="hist-value">11%</span>
+              </div>
+              <div class="hist-row">
+                <span class="hist-label">18</span>
+                <span class="hist-track"><i style="width: 33%"></i></span>
+                <span class="hist-value">11%</span>
+              </div>
+              <div class="hist-row">
+                <span class="hist-label">19</span>
+                <span class="hist-track"><i style="width: 33%"></i></span>
+                <span class="hist-value">11%</span>
+              </div>
+              <div class="hist-row">
+                <span class="hist-label">20</span>
+                <span class="hist-track"><i style="width: 100%"></i></span>
+                <span class="hist-value">33%</span>
+              </div>
+              <div class="hist-row">
+                <span class="hist-label">21</span>
+                <span class="hist-track"><i style="width: 36%"></i></span>
+                <span class="hist-value">12%</span>
+              </div>
+              <div class="hist-row hist-row--bust">
+                <span class="hist-label">Bust</span>
+                <span class="hist-track"><i style="width: 67%"></i></span>
+                <span class="hist-value">22%</span>
+              </div>
+            </div>
+            <p class="note">
+              This is why the hand was already bad before you touched it. A
+              dealer showing a ten reaches twenty about a third of the time and
+              busts only about one time in five.
             </p>
           </div>
 
           <div>
-            <h3>What it costs to stand</h3>
-            <p>
-              Standing on sixteen does not avoid the loss. It hands the hand to
-              the dealer, who is showing a ten, and asks them not to make one.
-              They usually do.
+            <h3>Every one of those 1,000 hands</h3>
+            <div class="waffle-head">
+              <span>Hit · seeded simulation</span>
+              <span id="counter">1,000 / 1,000</span>
+            </div>
+            <div class="waffle" id="waffle" role="img"
+              aria-label="One thousand play-outs of hitting this hand: 540 lost, 380 won, 80 pushed. Your own hand is one of the 540 that lost."></div>
+            <p class="waffle-legend">
+              <span><i style="background: var(--red-wash); outline: 1px solid var(--red)"></i>540 lost</span>
+              <span><i style="background: color-mix(in srgb, var(--ink) 22%, transparent)"></i>380 won</span>
+              <span><i style="background: color-mix(in srgb, var(--rule) 55%, transparent)"></i>80 push</span>
+              <span><i style="background: var(--pin)"></i>you</span>
             </p>
-            <p class="figure-note">
-              Both choices lose more often than they win. The better decision is
-              the one that loses less — and that is the whole definition of
-              better you are going to get.
+            <p class="note">
+              Push means nobody won — your bet comes back. Your hand is the solid
+              mark. It is one of a thousand, it is not special, and it is not
+              evidence about the decision that produced it.
+              <em>Figures illustrative in this styleframe; the shipped page
+                computes them from the seeded simulation.</em>
+            </p>
+          </div>
+        </div>
+
+        <button class="btn btn--advance" type="button">
+          Try the other decision
+        </button>
+      </section>
+
+      <!-- ================= ACT 2 ================= -->
+      <section class="plate" id="act-2">
+        <p class="plate-label">Act 2 · the deal model, on the same axis</p>
+        <p class="eyebrow">Act 2</p>
+        <h2>Same hand. One thing changed.</h2>
+
+        <div class="spread">
+          <div>
+            <div class="models">
+              <button class="model" type="button" aria-pressed="true">
+                <span class="mark">●</span>
+                <span class="name">
+                  Finite shoe
+                  <small>Dealt cards are gone. What has appeared changes what can appear next.</small>
+                </span>
+              </button>
+              <button class="model" type="button" aria-pressed="false">
+                <span class="mark">○</span>
+                <span class="name">
+                  Independent draw
+                  <small>Every card from the same unchanging distribution. The past carries nothing.</small>
+                </span>
+              </button>
+            </div>
+
+            <div>
+              <div class="meter-head"><span>Cards remaining</span><b>268</b></div>
+              <div class="shoe">
+                <span class="remaining" style="flex: 0 0 86%"></span>
+                <span class="spent"></span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3>How many of each rank are left</h3>
+            <p class="axis-full-label">24 — a full rank ⌄</p>
+            <div class="axis-row axis-bars">
+              <span class="bar" style="height: 87.5%"></span>
+              <span class="bar" style="height: 83.3%"></span>
+              <span class="bar" style="height: 91.7%"></span>
+              <span class="bar" style="height: 79.2%"></span>
+              <span class="bar bar--low" style="height: 75%"></span>
+              <span class="split" aria-hidden="true"></span>
+              <span class="bar" style="height: 87.5%"></span>
+              <span class="bar" style="height: 83.3%"></span>
+              <span class="bar" style="height: 91.7%"></span>
+              <span class="bar" style="height: 87.5%"></span>
+              <span class="bar" style="height: 87.5%"></span>
+              <span class="bar" style="height: 83.3%"></span>
+              <span class="bar" style="height: 87.5%"></span>
+              <span class="bar" style="height: 91.7%"></span>
+            </div>
+            <div class="axis-row" style="padding-top: 0.35rem">
+              <div class="draw">A</div>
+              <div class="draw">2</div>
+              <div class="draw">3</div>
+              <div class="draw">4</div>
+              <div class="draw" aria-pressed="true">5</div>
+              <span class="split" aria-hidden="true"></span>
+              <div class="draw">6</div>
+              <div class="draw">7</div>
+              <div class="draw">8</div>
+              <div class="draw">9</div>
+              <div class="draw">10</div>
+              <div class="draw">J</div>
+              <div class="draw">Q</div>
+              <div class="draw">K</div>
+            </div>
+
+            <div class="slot">
+              <p class="slot-rank">Five</p>
+              <dl>
+                <dt>Left in shoe</dt>
+                <dd>18 of 24</dd>
+                <dt>Chance next</dt>
+                <dd>6.72%</dd>
+                <dt>Was</dt>
+                <dd>7.69% — 24 of 312</dd>
+                <dt class="expectation">Expect</dt>
+                <dd class="expectation">about 67 in every 1,000 draws</dd>
+              </dl>
+            </div>
+
+            <p class="note">
+              Six fives have gone — and the five is one of only five ranks that
+              save a sixteen. The hand you were dealt in Act 1 is quietly getting
+              worse, and nothing on the table told you. Switch to independent
+              draw and every bar returns to 24 and stays there, whatever has been
+              dealt. Only one of these two worlds makes remembering worth
+              anything.
             </p>
           </div>
         </div>
       </section>
 
-      <!-- ============ PLATE 3 — the pin (signature) ============ -->
-      <section class="plate act">
-        <p class="plate-label">Plate 3 — your result inside its distribution</p>
-        <h3>1,000 play-outs of the decision you made</h3>
-
-        <div class="dist">
-          <div class="dist-counter">
-            <span>Hit · seeded simulation</span>
-            <span>1,000 / 1,000</span>
-          </div>
-          <div class="dist-track">
-            <div class="seg seg--lost" style="flex: 0 0 54%">Lost 540</div>
-            <div class="seg seg--push" style="flex: 0 0 8%">80</div>
-            <div class="seg seg--won" style="flex: 0 0 38%">Won 380</div>
-            <span class="pin" style="left: 31%"></span>
-          </div>
-          <div class="pin-label" style="padding-left: 31%">
-            <span>▲ You, once. You lost.</span>
-          </div>
-          <p class="figure-note">
-            Of 1,000 play-outs of hitting this hand, 540 lost, 80 pushed and 380
-            won. Your hand is one mark in the red. It is not evidence.
-            <em>Figures illustrative in this styleframe; the shipped page
-              computes them from the seeded simulation.</em>
-          </p>
-        </div>
-      </section>
-
-      <!-- ============ PLATE 4 — Act 3 instruments ============ -->
-      <section class="plate act" id="act-3">
-        <p class="plate-label">Plate 4 — Act 3, the shoe and the count</p>
+      <!-- ================= ACT 3 ================= -->
+      <section class="plate" id="act-3">
+        <p class="plate-label">Act 3 · the count, on the same axis</p>
         <p class="eyebrow">Act 3</p>
         <h2>What is left in the shoe</h2>
 
-        <div class="meters">
+        <div class="spread">
           <div>
-            <div class="meter-head">
-              <span>Cards remaining</span><b>268</b>
+            <h3>How the count works</h3>
+            <div class="axis-row">
+              <div class="draw">A</div>
+              <div class="draw">2</div>
+              <div class="draw">3</div>
+              <div class="draw">4</div>
+              <div class="draw">5</div>
+              <span class="split" aria-hidden="true"></span>
+              <div class="draw">6</div>
+              <div class="draw">7</div>
+              <div class="draw">8</div>
+              <div class="draw">9</div>
+              <div class="draw">10</div>
+              <div class="draw">J</div>
+              <div class="draw">Q</div>
+              <div class="draw">K</div>
             </div>
-            <div class="shoe">
-              <span class="left" style="flex: 0 0 86%"></span>
+            <div class="axis-row axis-values">
+              <span class="minus">−1</span>
+              <span class="plus">+1</span>
+              <span class="plus">+1</span>
+              <span class="plus just-left">+1</span>
+              <span class="plus">+1</span>
+              <span class="split" aria-hidden="true" style="background: none"></span>
+              <span class="plus">+1</span>
+              <span>0</span>
+              <span>0</span>
+              <span>0</span>
+              <span class="minus">−1</span>
+              <span class="minus">−1</span>
+              <span class="minus">−1</span>
+              <span class="minus">−1</span>
             </div>
+            <p class="note">
+              A four just left the shoe: <b>+1</b>. Aces sit at one end and tens
+              at the other, and both count −1 — the count does not care what a
+              card is worth, only whether it is high or low.
+            </p>
           </div>
 
           <div>
-            <div class="meter-head">
-              <span>Running count</span><b>+6</b>
+            <div class="meter-head"><span>Running count</span><b>+6</b></div>
+            <div class="meter-head"><span>Cards remaining</span><b>212</b></div>
+            <div class="shoe">
+              <span class="remaining" style="flex: 0 0 68%"></span>
+              <span class="spent"></span>
             </div>
-            <p class="count-strip">
-              <span class="chip">4 → +1</span>
-              <span class="chip">6 → +1</span>
-              <span class="chip chip--minus">K → −1</span>
-              <span class="chip">9 → 0</span>
-              <span>last four cards out of the shoe</span>
-            </p>
-            <p class="figure-note">
-              A rising count means the shoe still holds its tens and aces. It
-              says nothing whatsoever about the next card.
+            <p class="note">
+              A count of +6 means the shoe still holds its tens and aces. You now
+              hold the best information a blackjack player can legitimately have.
+              It says nothing whatsoever about the next card.
             </p>
           </div>
         </div>
       </section>
 
-      <!-- ============ PLATE 5 — the close ============ -->
+      <!-- ================= THE CLOSE ================= -->
       <section class="plate">
-        <p class="plate-label">Plate 5 — the close</p>
+        <p class="plate-label">The close</p>
         <div class="close">
           <span class="stamp">Chosen, not dealt</span>
           <p>
@@ -816,17 +1338,38 @@
           </p>
           <p class="thesis">A good decision is not a promise of a good outcome.</p>
         </div>
+
+        <details class="reference">
+          <summary>Reference</summary>
+          <dl>
+            <dt>Shoe</dt>
+            <dd>The six decks the dealer deals from — 312 cards to start.</dd>
+            <dt>Upcard</dt>
+            <dd>The dealer's one face-up card. Everything you know about their hand.</dd>
+            <dt>Push</dt>
+            <dd>Nobody won. Your bet comes back.</dd>
+            <dt>Draw</dt>
+            <dd>A single next card, on its own.</dd>
+            <dt>Play-out</dt>
+            <dd>One hand carried from your decision through the dealer's turn to settlement.</dd>
+            <dt>Running count</dt>
+            <dd>
+              The Hi-Lo tally of cards that have left: low cards raise it, tens
+              and aces lower it. Describes what remains — never what comes next.
+            </dd>
+          </dl>
+        </details>
       </section>
 
-      <!-- ============ PLATE 0 — tokens ============ -->
+      <!-- ================= TOKENS ================= -->
       <section class="plate">
-        <p class="plate-label">Plate 0 — the system</p>
+        <p class="plate-label">The system</p>
         <div class="swatches">
           <div class="swatch">
             <i style="background: var(--stock)"></i><b>Stock</b>the table
           </div>
           <div class="swatch">
-            <i style="background: var(--card)"></i><b>Card</b>lifted surface
+            <i style="background: var(--card)"></i><b>Card</b>lifted, with depth
           </div>
           <div class="swatch">
             <i style="background: var(--ink)"></i><b>Ink</b>structure · survive
@@ -838,25 +1381,24 @@
             <i style="background: var(--rule)"></i><b>Rule</b>hairline · push
           </div>
         </div>
-        <p class="figure-note">
+        <p class="note">
           Archivo Narrow, caps, for anything printed on the table. Source Serif 4
           for the argument. JetBrains Mono, tabular, for every number that moves.
           Cards are printed in one ink whatever the suit, so red can mean one
-          thing only.
+          thing only. Depth belongs to cards and the shoe; nothing else on the
+          page casts a shadow.
         </p>
       </section>
     </div>
 
     <script>
-      // Lives entirely outside the seam: it flips one attribute on <html> and
-      // touches no State, so render() stays a pure function of State alone.
+      // ---- theme: lives outside the seam. Flips one attribute, touches no State.
       const root = document.documentElement;
       const btn = document.getElementById("theme");
       const isDark = () =>
         root.dataset.theme === "dark" ||
         (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
       const label = () => (btn.textContent = isDark() ? "Day" : "Night");
-
       label();
       new MutationObserver(label).observe(root, {
         attributes: true,
@@ -865,6 +1407,55 @@
       btn.addEventListener("click", () => {
         root.dataset.theme = isDark() ? "light" : "dark";
       });
+
+      // ---- waffle: 1,000 marks, one per play-out. Throwaway demo data —
+      //      the shipped page fills this from the seeded simulation as it runs.
+      const waffle = document.getElementById("waffle");
+      const counter = document.getElementById("counter");
+      const YOU = 431; // your play-out, somewhere in the lost pile
+      const results = [];
+      for (let i = 0; i < 1000; i++) {
+        results.push(i < 540 ? "lost" : i < 620 ? "push" : "won");
+      }
+      // deterministic shuffle so the plate looks the same every reload
+      let seed = 20260816;
+      const rand = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
+      for (let i = results.length - 1; i > 0; i--) {
+        const j = Math.floor(rand() * (i + 1));
+        [results[i], results[j]] = [results[j], results[i]];
+      }
+      results[YOU] = "lost";
+
+      const cells = results.map((r, i) => {
+        const s = document.createElement("span");
+        s.className = "pending";
+        s.dataset.result = i === YOU ? "you" : r;
+        return s;
+      });
+      waffle.append(...cells);
+
+      const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const fill = (n) => {
+        for (let i = 0; i < n; i++) cells[i].className = cells[i].dataset.result;
+        counter.textContent = `${n.toLocaleString()} / 1,000`;
+      };
+
+      if (reduce) {
+        fill(1000);
+      } else {
+        let shown = 0;
+        const step = () => {
+          shown = Math.min(1000, shown + 24);
+          fill(shown);
+          if (shown < 1000) requestAnimationFrame(step);
+        };
+        new IntersectionObserver((entries, obs) => {
+          if (entries[0].isIntersecting) {
+            obs.disconnect();
+            requestAnimationFrame(step);
+          }
+        }).observe(waffle);
+      }
     </script>
   </body>
 </html>
