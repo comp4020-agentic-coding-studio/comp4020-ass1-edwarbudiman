@@ -65,17 +65,26 @@ function updateNavCurrent(): void {
   }
 }
 
-/** Replacing the markup destroys focus, so every re-render restores it: to
- *  the control just activated where it still exists, otherwise to the Act
- *  section that changed (`tabindex="-1"` in `render.ts`'s output). */
+/** Replacing the markup destroys focus, but only for whatever was focused
+ *  INSIDE `#acts` — everything else (the nav, the Reference `<summary>`, the
+ *  Act 3 offer's link) lives outside the mount and is untouched by
+ *  `mount.innerHTML = ...`. So a re-render only restores focus when it was
+ *  inside the mount to begin with: to the control just activated where it
+ *  still exists, otherwise to the Act section that changed (`tabindex="-1"`
+ *  in `render.ts`'s output). If focus was elsewhere, this leaves it exactly
+ *  where it was — replacing `#acts` cannot have destroyed a focus that was
+ *  never inside it. */
 function rerender(): void {
   updateNavCurrent();
   if (!mount) return;
 
   const active = document.activeElement;
-  const focusedId = active instanceof HTMLElement && active.id ? active.id : null;
+  const wasInsideMount = active instanceof HTMLElement && mount.contains(active);
+  const focusedId = wasInsideMount && active.id ? active.id : null;
 
   mount.innerHTML = render(state);
+
+  if (!wasInsideMount) return;
 
   const target =
     (focusedId && document.getElementById(focusedId)) ||
@@ -136,6 +145,16 @@ function maybeOfferAct3(previous: State): void {
     offerBanner.hidden = true;
     return;
   }
+  // The offer may only fire once the Running Count is actually on screen and
+  // accumulating in bulk — in practice, Act 2's free play (CONTEXT.md: "this
+  // is where ... the Running Count becomes worth watching"). Act 1 beats 1-3
+  // can push the high-water mark before the readout has even appeared (it
+  // first renders in beat 4), and Act 2 opens locked to the same fixed hand
+  // every time, so `act2FreePlay` — sticky once `unlockFreePlay` sets it,
+  // CONTEXT.md's "Act 2" — is both the correct and the sufficient gate. This
+  // is a gate on WHEN the offer is allowed, not a fixed count threshold: the
+  // trigger stays `reachedNewHighWaterMark` alone.
+  if (!state.act2FreePlay) return;
   if (reachedNewHighWaterMark(previous, state)) {
     if (offerCount) {
       offerCount.textContent = formatSignedCount(state.runningCountHighWaterMark);
@@ -153,12 +172,29 @@ function maybeOfferAct3(previous: State): void {
 // reference `matchMedia` (see `spec/contracts.test.ts`'s grep).
 //
 // Every re-render — including each climb frame — goes through `rerender()`,
-// which restores focus to whatever was focused before the render. Since
-// nothing else moves focus during the climb, that is always the same
-// element (typically the Act 1 section itself), so the climb never steals
-// keyboard focus from a visitor tabbing through the page.
-const CLIMB_STEP = 20;
+// which only restores focus when it was inside `#acts` to begin with. A
+// visitor tabbing through the nav, the Reference disclosure, or the Act 3
+// offer's link is focused OUTSIDE `#acts`, so consecutive climb frames leave
+// that focus alone instead of yanking it back to the Act section on every
+// frame.
+//
+// `render(state)` re-runs both of beat 4's 1,000-trial simulations from
+// scratch on every call, and only `playoutProgress` changes frame to frame —
+// so the frame count IS the cost. `CLIMB_STEP` used to be 20 (50 renders to
+// fill 1,000, ~1.2ms/frame warm + a ~14.8ms first render measured on desktop:
+// ~72-94ms of blocking work per climb, worse on the 390px viewport). Bumping
+// it to 100 cuts that to 10 renders (~14-16ms total, measured the same way —
+// see the commit message). `CLIMB_INTERVAL_MS` then paces those 10 renders
+// across roughly the same wall-clock time the old 50-frame climb took, by
+// skipping `requestAnimationFrame` callbacks that land before the interval
+// has elapsed — cheap (no `render` call) rather than free, but every frame
+// still checks in, so `stopClimb` can still cancel promptly. Neither number
+// moves simulation work into this file or behind the seam: `render(state)`
+// is untouched and still pure.
+const CLIMB_STEP = 100;
+const CLIMB_INTERVAL_MS = 80;
 let climbHandle: number | null = null;
+let climbDue = 0;
 
 function isBeat4Filling(s: State): boolean {
   return s.act === 1 && s.beat === 4 && s.playoutProgress < PLAYOUT_TRIALS;
@@ -171,7 +207,12 @@ function stopClimb(): void {
   }
 }
 
-function tickClimb(): void {
+function tickClimb(now: number): void {
+  if (now < climbDue) {
+    climbHandle = requestAnimationFrame(tickClimb);
+    return;
+  }
+  climbDue = now + CLIMB_INTERVAL_MS;
   state = advanceSimulation(state, CLIMB_STEP);
   rerender();
   climbHandle = isBeat4Filling(state) ? requestAnimationFrame(tickClimb) : null;
@@ -190,6 +231,7 @@ function maybeStartClimb(): void {
     return;
   }
 
+  climbDue = 0;
   climbHandle = requestAnimationFrame(tickClimb);
 }
 
