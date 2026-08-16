@@ -31,14 +31,12 @@ describe("drawCard, when the drawn rank is exhausted", () => {
     const shoe = shoeWithout("6");
     expect(shoe.composition["6"]).toBe(0);
 
+    // Under Independent Draw every rank carries an equal slice of the fresh
+    // composition, so the 6's slice starts at its index and an rng landing
+    // just inside it selects the 6 — which is gone.
     const sixIndex = RANKS.indexOf("6");
-    const before = RANKS.slice(0, sixIndex).reduce(
-      (sum, rank) => sum + shoe.size / RANKS.length,
-      0,
-    );
-    // An rng landing just inside the 6's slice of the fresh-composition weights.
-    const total = shoe.size;
-    const rng = () => (before + 1) / total;
+    const before = sixIndex * (shoe.size / RANKS.length);
+    const rng = () => (before + 1) / shoe.size;
 
     const { rank } = drawCard(shoe, "independent-draw", rng);
     expect(rank).toBe("7");
