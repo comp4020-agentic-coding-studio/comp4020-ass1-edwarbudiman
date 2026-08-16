@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Styleframe — Blackjack Probability Explainer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ------------------------------------------------------------------
+         TWO-INK TABLE PRINT — visual system
+         Roles, not literals. Night mode is the same press run on dark stock.
+      ------------------------------------------------------------------ */
+      :root {
+        --stock: #e7e6e1; /* the table: ground */
+        --card: #fbfaf7; /* card stock: lighter than the table */
+        --ink: #14110f; /* everything structural, and SURVIVE */
+        --ink-dim: #636057; /* secondary, spent, captions */
+        --red: #c8102e; /* BUST and LOSS. Nothing else, ever. */
+        --red-wash: #c8102e1f;
+        --rule: #b8b6ae; /* hairlines, tracks, pushes */
+        --pin: #14110f; /* the one solid mark: your actual result */
+
+        --face-display: "Archivo Narrow", "Helvetica Neue", sans-serif;
+        --face-body: "Source Serif 4", Georgia, serif;
+        --face-data: "JetBrains Mono", ui-monospace, monospace;
+
+        --step: 0.5rem;
+        --gutter: 1.25rem;
+        color-scheme: light;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --stock: #16140f;
+          --card: #24211b;
+          --ink: #edeae1;
+          --ink-dim: #a19b8e;
+          --red: #f0564a;
+          --red-wash: #f0564a1f;
+          --rule: #46423a;
+          --pin: #edeae1;
+          color-scheme: dark;
+        }
+      }
+
+      :root[data-theme="dark"] {
+        --stock: #16140f;
+        --card: #24211b;
+        --ink: #edeae1;
+        --ink-dim: #a19b8e;
+        --red: #f0564a;
+        --red-wash: #f0564a1f;
+        --rule: #46423a;
+        --pin: #edeae1;
+        color-scheme: dark;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--stock);
+        color: var(--ink);
+        font-family: var(--face-body);
+        font-size: 1.0625rem;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 3px;
+      }
+
+      /* ---------- shell ---------- */
+
+      .page {
+        max-width: 33rem;
+        margin: 0 auto;
+        padding: 0 var(--gutter) 5rem;
+      }
+
+      .masthead {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-block: 1.25rem 1rem;
+        border-bottom: 1px solid var(--ink);
+      }
+
+      h1 {
+        font-family: var(--face-display);
+        font-weight: 700;
+        font-size: clamp(1.3125rem, 6vw, 2.125rem);
+        line-height: 1.08;
+        letter-spacing: 0.005em;
+        text-transform: uppercase;
+        margin: 0;
+        max-width: 13ch;
+      }
+
+      .theme-toggle {
+        flex: none;
+        font-family: var(--face-display);
+        font-size: 0.6875rem;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--ink);
+        background: none;
+        border: 1px solid var(--ink);
+        border-radius: 0;
+        padding: 0.4rem 0.6rem;
+        cursor: pointer;
+      }
+
+      nav[aria-label="Acts"] ol {
+        display: flex;
+        gap: 1.25rem;
+        list-style: none;
+        margin: 0;
+        padding: 0.65rem 0;
+        border-bottom: 1px solid var(--rule);
+      }
+
+      nav[aria-label="Acts"] a {
+        font-family: var(--face-display);
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--ink-dim);
+        text-decoration: none;
+      }
+
+      nav[aria-label="Acts"] a[aria-current="step"] {
+        color: var(--ink);
+        text-decoration: underline;
+        text-underline-offset: 5px;
+        text-decoration-thickness: 2px;
+      }
+
+      /* the one line of table rules, set like it is printed on the felt */
+      .rules {
+        font-family: var(--face-display);
+        font-size: 0.6875rem;
+        font-weight: 500;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--ink-dim);
+        margin: 0;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--rule);
+      }
+
+      /* ---------- act structure ---------- */
+
+      .act {
+        padding-top: 2.25rem;
+      }
+
+      .eyebrow {
+        font-family: var(--face-display);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--ink-dim);
+        margin: 0 0 0.5rem;
+      }
+
+      h2 {
+        font-family: var(--face-display);
+        font-weight: 700;
+        font-size: clamp(1.375rem, 6vw, 1.75rem);
+        line-height: 1.1;
+        text-transform: uppercase;
+        margin: 0 0 1rem;
+      }
+
+      h3 {
+        font-family: var(--face-display);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        margin: 0 0 0.65rem;
+        color: var(--ink-dim);
+      }
+
+      p {
+        margin: 0 0 1rem;
+        max-width: 34em;
+      }
+
+      .lede {
+        font-size: 1.1875rem;
+      }
+
+      /* ---------- the table ---------- */
+
+      .table {
+        display: grid;
+        gap: 1.25rem;
+        padding: 1.5rem 0;
+      }
+
+      .seat {
+        display: flex;
+        align-items: flex-end;
+        gap: 0.75rem;
+      }
+
+      .hand {
+        display: flex;
+        gap: 0.4rem;
+      }
+
+      .card {
+        width: 3.75rem;
+        aspect-ratio: 5 / 7;
+        background: var(--card);
+        border: 1px solid var(--ink);
+        border-radius: 7px;
+        position: relative;
+        display: grid;
+        place-items: center;
+        /* cards are the only rounded, tactile objects on a flat printed field */
+        box-shadow: 0 1px 0 var(--rule);
+      }
+
+      .card .rank {
+        font-family: var(--face-body);
+        font-weight: 600;
+        font-size: 1.5rem;
+        line-height: 1;
+        color: var(--ink); /* one ink, whatever the suit */
+      }
+
+      .card .suit {
+        position: absolute;
+        top: 0.25rem;
+        left: 0.35rem;
+        font-size: 0.6875rem;
+        color: var(--ink-dim);
+      }
+
+      .card--face-down {
+        background: repeating-linear-gradient(
+          45deg,
+          var(--stock) 0 3px,
+          var(--card) 3px 6px
+        );
+      }
+
+      .total {
+        font-family: var(--face-data);
+        font-size: 0.75rem;
+        letter-spacing: 0.02em;
+        color: var(--ink-dim);
+        padding-bottom: 0.35rem;
+      }
+
+      .total b {
+        display: block;
+        font-family: var(--face-display);
+        font-weight: 700;
+        font-size: 2rem;
+        line-height: 1;
+        letter-spacing: 0.01em;
+        color: var(--ink);
+      }
+
+      /* ---------- the decision ---------- */
+
+      .decision {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        padding: 0.5rem 0 1.25rem;
+      }
+
+      .decision button {
+        font-family: var(--face-display);
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        /* equal weight on both: the page must not nudge the intuition */
+        color: var(--ink);
+        background: var(--card);
+        border: 1.5px solid var(--ink);
+        border-radius: 0;
+        padding: 1rem 0.5rem;
+        cursor: pointer;
+      }
+
+      .decision button:hover {
+        background: var(--ink);
+        color: var(--stock);
+      }
+
+      /* ---------- the thirteen draws ---------- */
+
+      .draws {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr) 2px repeat(8, 1fr);
+        gap: 0.2rem;
+        align-items: start;
+      }
+
+      .draw {
+        aspect-ratio: 5 / 7;
+        border: 1px solid var(--ink);
+        border-radius: 3px;
+        background: var(--card);
+        display: grid;
+        place-items: center;
+        font-family: var(--face-data);
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--ink);
+      }
+
+      .draw--bust {
+        border-color: var(--red);
+        background: var(--red-wash);
+        color: var(--red);
+      }
+
+      /* The bust line. The split is a PLACE on the strip, not a colour key —
+         so it pokes out past the cards and gets read as an edge. */
+      .draws .split {
+        align-self: stretch;
+        background: var(--ink);
+        margin: -0.5rem 0;
+      }
+
+      .draws-key {
+        display: flex;
+        justify-content: space-between;
+        font-family: var(--face-data);
+        font-size: 0.6875rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding-top: 0.6rem;
+      }
+
+      .draws-key .survive {
+        color: var(--ink);
+      }
+
+      .draws-key .bust {
+        color: var(--red);
+      }
+
+      /* Prose is always the serif. The mono is for numbers that move, and
+         using it for sentences is what makes a page look like a terminal. */
+      .figure-note {
+        font-family: var(--face-body);
+        font-size: 0.9375rem;
+        line-height: 1.55;
+        color: var(--ink-dim);
+        margin: 0.85rem 0 0;
+        max-width: 42ch;
+      }
+
+      /* ---------- the distribution and the pin (signature) ---------- */
+
+      .dist {
+        padding-top: 0.5rem;
+      }
+
+      .dist-counter {
+        font-family: var(--face-data);
+        font-size: 0.75rem;
+        color: var(--ink-dim);
+        display: flex;
+        justify-content: space-between;
+        padding-bottom: 0.45rem;
+      }
+
+      .dist-track {
+        display: flex;
+        height: 2.75rem;
+        border: 1px solid var(--ink);
+        position: relative;
+      }
+
+      /* stacked at 390, side by side from 60rem */
+      .spread > * + * {
+        margin-top: 2.5rem;
+      }
+
+      .seg {
+        display: flex;
+        align-items: center;
+        padding-inline: 0.5rem;
+        font-family: var(--face-data);
+        font-size: 0.6875rem;
+        letter-spacing: 0.06em;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+
+      .seg--lost {
+        background: var(--red-wash);
+        color: var(--red);
+        border-right: 1px solid var(--red);
+      }
+
+      .seg--push {
+        background: none;
+        color: var(--ink-dim);
+        border-right: 1px solid var(--rule);
+      }
+
+      .seg--won {
+        background: none;
+        color: var(--ink);
+      }
+
+      /* THE PIN — the only solid mark on the page. Your one real result,
+         standing inside the range of results it came from. */
+      .pin {
+        position: absolute;
+        top: -0.5rem;
+        bottom: -0.5rem;
+        width: 3px;
+        background: var(--pin);
+      }
+
+      .pin-label {
+        display: flex;
+        font-family: var(--face-data);
+        font-size: 0.6875rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding-top: 0.9rem;
+        color: var(--ink);
+      }
+
+      .pin-label span {
+        border-top: 1px solid var(--ink);
+        padding-top: 0.3rem;
+      }
+
+      /* ---------- shoe and running count (act 3) ---------- */
+
+      .meters {
+        display: grid;
+        gap: 1.25rem;
+        padding: 1rem 0 0;
+      }
+
+      .meter-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-family: var(--face-data);
+        font-size: 0.75rem;
+        color: var(--ink-dim);
+        padding-bottom: 0.4rem;
+      }
+
+      .meter-head b {
+        font-family: var(--face-display);
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--ink);
+        letter-spacing: 0.02em;
+      }
+
+      .shoe {
+        height: 0.75rem;
+        border: 1px solid var(--ink);
+        display: flex;
+      }
+
+      .shoe .left {
+        background: var(--ink);
+      }
+
+      .count-strip {
+        display: flex;
+        gap: 0.25rem;
+        align-items: center;
+        font-family: var(--face-data);
+        font-size: 0.6875rem;
+        color: var(--ink-dim);
+        flex-wrap: wrap;
+      }
+
+      .chip {
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        padding: 0.1rem 0.3rem;
+        color: var(--ink);
+      }
+
+      .chip--minus {
+        border-color: var(--red);
+        color: var(--red);
+      }
+
+      /* ---------- labels and the close ---------- */
+
+      .stamp {
+        display: inline-block;
+        font-family: var(--face-display);
+        font-size: 0.6875rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--red);
+        border: 1.5px solid var(--red);
+        padding: 0.25rem 0.5rem;
+        margin-bottom: 0.9rem;
+      }
+
+      .close {
+        padding: 3rem 0 0;
+        border-top: 1px solid var(--ink);
+        margin-top: 3rem;
+      }
+
+      .thesis {
+        font-family: var(--face-display);
+        font-weight: 700;
+        font-size: clamp(1.75rem, 9vw, 3rem);
+        line-height: 1.02;
+        letter-spacing: 0.005em;
+        text-transform: uppercase;
+        margin: 0;
+        max-width: 16ch;
+      }
+
+      /* ---------- proof-sheet scaffolding (styleframe only) ---------- */
+
+      .plate {
+        border-top: 1px dashed var(--rule);
+        margin-top: 2.5rem;
+        padding-top: 0.75rem;
+      }
+
+      .plate-label {
+        font-family: var(--face-data);
+        font-size: 0.6875rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-dim);
+        margin: 0 0 0.25rem;
+      }
+
+      .swatches {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
+        gap: 0.5rem;
+        padding-top: 0.75rem;
+      }
+
+      .swatch {
+        border: 1px solid var(--rule);
+        padding: 0.5rem;
+        font-family: var(--face-data);
+        font-size: 0.625rem;
+        line-height: 1.5;
+        color: var(--ink-dim);
+      }
+
+      .swatch i {
+        display: block;
+        height: 2.5rem;
+        margin-bottom: 0.4rem;
+        border: 1px solid var(--rule);
+      }
+
+      .swatch b {
+        display: block;
+        color: var(--ink);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      /* ---------- 1920: the table and the model, side by side ---------- */
+
+      @media (min-width: 60rem) {
+        .page {
+          max-width: 72rem;
+        }
+
+        .spread {
+          display: grid;
+          grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+          gap: 3.5rem;
+          align-items: start;
+        }
+
+        .spread > * + * {
+          margin-top: 0;
+        }
+
+        h1 {
+          font-size: 2.5rem;
+          max-width: none;
+        }
+
+        .card {
+          width: 5rem;
+        }
+
+        .thesis {
+          font-size: 4.5rem;
+          max-width: 20ch;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+          animation: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="masthead">
+        <h1>Blackjack Probability Explainer</h1>
+        <button class="theme-toggle" type="button" id="theme">Night</button>
+      </header>
+
+      <nav aria-label="Acts">
+        <ol>
+          <li><a href="#act-1" aria-current="step">1 · Decision</a></li>
+          <li><a href="#act-2">2 · Shoe</a></li>
+          <li><a href="#act-3">3 · Count</a></li>
+        </ol>
+      </nav>
+
+      <p class="rules">
+        Six decks · Dealer stands on all 17s · Hit and stand only · No double, no
+        split
+      </p>
+
+      <!-- ============ PLATE 1 — Act 1, before the Decision ============ -->
+      <section class="plate act" id="act-1">
+        <p class="plate-label">Plate 1 — Act 1, before the decision</p>
+        <p class="eyebrow">Act 1</p>
+        <h2>You have sixteen</h2>
+        <p class="lede">
+          The dealer is showing a ten. Before you read another word: hit, or
+          stand?
+        </p>
+
+        <div class="table">
+          <div class="seat">
+            <div class="hand">
+              <div class="card">
+                <span class="suit">♠</span><span class="rank">10</span>
+              </div>
+              <div class="card card--face-down" aria-label="Face-down card"></div>
+            </div>
+            <p class="total">Dealer<b>10</b></p>
+          </div>
+
+          <div class="seat">
+            <div class="hand">
+              <div class="card">
+                <span class="suit">♦</span><span class="rank">10</span>
+              </div>
+              <div class="card">
+                <span class="suit">♣</span><span class="rank">6</span>
+              </div>
+            </div>
+            <p class="total">You<b>16</b></p>
+          </div>
+        </div>
+
+        <div class="decision">
+          <button type="button">Hit</button>
+          <button type="button">Stand</button>
+        </div>
+      </section>
+
+      <!-- ============ PLATE 2 — the thirteen Draws ============ -->
+      <section class="plate act">
+        <p class="plate-label">Plate 2 — Act 1, after the decision</p>
+        <div class="spread">
+          <div>
+            <h3>Every card that could come next</h3>
+            <div class="draws">
+              <div class="draw">A</div>
+              <div class="draw">2</div>
+              <div class="draw">3</div>
+              <div class="draw">4</div>
+              <div class="draw">5</div>
+              <span class="split" aria-hidden="true"></span>
+              <div class="draw draw--bust">6</div>
+              <div class="draw draw--bust">7</div>
+              <div class="draw draw--bust">8</div>
+              <div class="draw draw--bust">9</div>
+              <div class="draw draw--bust">10</div>
+              <div class="draw draw--bust">J</div>
+              <div class="draw draw--bust">Q</div>
+              <div class="draw draw--bust">K</div>
+            </div>
+            <div class="draws-key">
+              <span class="survive">5 / 13 survive · 38.5%</span>
+              <span class="bust">8 / 13 bust · 61.5%</span>
+            </div>
+            <p class="figure-note">
+              Ace through five keep you alive. Everything from six up busts you.
+              The line is where the strip changes hands.
+            </p>
+          </div>
+
+          <div>
+            <h3>What it costs to stand</h3>
+            <p>
+              Standing on sixteen does not avoid the loss. It hands the hand to
+              the dealer, who is showing a ten, and asks them not to make one.
+              They usually do.
+            </p>
+            <p class="figure-note">
+              Both choices lose more often than they win. The better decision is
+              the one that loses less — and that is the whole definition of
+              better you are going to get.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PLATE 3 — the pin (signature) ============ -->
+      <section class="plate act">
+        <p class="plate-label">Plate 3 — your result inside its distribution</p>
+        <h3>1,000 play-outs of the decision you made</h3>
+
+        <div class="dist">
+          <div class="dist-counter">
+            <span>Hit · seeded simulation</span>
+            <span>1,000 / 1,000</span>
+          </div>
+          <div class="dist-track">
+            <div class="seg seg--lost" style="flex: 0 0 54%">Lost 540</div>
+            <div class="seg seg--push" style="flex: 0 0 8%">80</div>
+            <div class="seg seg--won" style="flex: 0 0 38%">Won 380</div>
+            <span class="pin" style="left: 31%"></span>
+          </div>
+          <div class="pin-label" style="padding-left: 31%">
+            <span>▲ You, once. You lost.</span>
+          </div>
+          <p class="figure-note">
+            Of 1,000 play-outs of hitting this hand, 540 lost, 80 pushed and 380
+            won. Your hand is one mark in the red. It is not evidence.
+            <em>Figures illustrative in this styleframe; the shipped page
+              computes them from the seeded simulation.</em>
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ PLATE 4 — Act 3 instruments ============ -->
+      <section class="plate act" id="act-3">
+        <p class="plate-label">Plate 4 — Act 3, the shoe and the count</p>
+        <p class="eyebrow">Act 3</p>
+        <h2>What is left in the shoe</h2>
+
+        <div class="meters">
+          <div>
+            <div class="meter-head">
+              <span>Cards remaining</span><b>268</b>
+            </div>
+            <div class="shoe">
+              <span class="left" style="flex: 0 0 86%"></span>
+            </div>
+          </div>
+
+          <div>
+            <div class="meter-head">
+              <span>Running count</span><b>+6</b>
+            </div>
+            <p class="count-strip">
+              <span class="chip">4 → +1</span>
+              <span class="chip">6 → +1</span>
+              <span class="chip chip--minus">K → −1</span>
+              <span class="chip">9 → 0</span>
+              <span>last four cards out of the shoe</span>
+            </p>
+            <p class="figure-note">
+              A rising count means the shoe still holds its tens and aces. It
+              says nothing whatsoever about the next card.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PLATE 5 — the close ============ -->
+      <section class="plate">
+        <p class="plate-label">Plate 5 — the close</p>
+        <div class="close">
+          <span class="stamp">Chosen, not dealt</span>
+          <p>
+            This last hand is scripted, and it is labelled because the subject of
+            this page is honesty about probability. You hold the best information
+            a player can legitimately have. You are going to lose anyway.
+          </p>
+          <p class="thesis">A good decision is not a promise of a good outcome.</p>
+        </div>
+      </section>
+
+      <!-- ============ PLATE 0 — tokens ============ -->
+      <section class="plate">
+        <p class="plate-label">Plate 0 — the system</p>
+        <div class="swatches">
+          <div class="swatch">
+            <i style="background: var(--stock)"></i><b>Stock</b>the table
+          </div>
+          <div class="swatch">
+            <i style="background: var(--card)"></i><b>Card</b>lifted surface
+          </div>
+          <div class="swatch">
+            <i style="background: var(--ink)"></i><b>Ink</b>structure · survive
+          </div>
+          <div class="swatch">
+            <i style="background: var(--red)"></i><b>Red</b>bust · loss only
+          </div>
+          <div class="swatch">
+            <i style="background: var(--rule)"></i><b>Rule</b>hairline · push
+          </div>
+        </div>
+        <p class="figure-note">
+          Archivo Narrow, caps, for anything printed on the table. Source Serif 4
+          for the argument. JetBrains Mono, tabular, for every number that moves.
+          Cards are printed in one ink whatever the suit, so red can mean one
+          thing only.
+        </p>
+      </section>
+    </div>
+
+    <script>
+      // Lives entirely outside the seam: it flips one attribute on <html> and
+      // touches no State, so render() stays a pure function of State alone.
+      const root = document.documentElement;
+      const btn = document.getElementById("theme");
+      const isDark = () =>
+        root.dataset.theme === "dark" ||
+        (!root.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
+      const label = () => (btn.textContent = isDark() ? "Day" : "Night");
+
+      label();
+      new MutationObserver(label).observe(root, {
+        attributes: true,
+        attributeFilter: ["data-theme"],
+      });
+      btn.addEventListener("click", () => {
+        root.dataset.theme = isDark() ? "light" : "dark";
+      });
+    </script>
+  </body>
+</html>

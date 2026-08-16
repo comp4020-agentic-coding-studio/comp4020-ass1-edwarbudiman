@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Proof sheet — 390×844, both themes</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 12px;
+        background: #7a7a7a;
+        font: 11px/1.4 ui-monospace, monospace;
+        color: #fff;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      figure {
+        margin: 0;
+      }
+      figcaption {
+        padding-bottom: 6px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      iframe {
+        width: 390px;
+        height: 2600px;
+        border: 0;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <figure>
+      <figcaption>390 × day</figcaption>
+      <iframe id="day" src="./styleframe.html"></iframe>
+    </figure>
+    <figure>
+      <figcaption>390 × night</figcaption>
+      <iframe id="night" src="./styleframe.html"></iframe>
+    </figure>
+    <script>
+      for (const [id, theme] of [
+        ["day", "light"],
+        ["night", "dark"],
+      ]) {
+        const f = document.getElementById(id);
+        f.addEventListener("load", () => {
+          f.contentDocument.documentElement.dataset.theme = theme;
+        });
+      }
+    </script>
+  </body>
+</html>
