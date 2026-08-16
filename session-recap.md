@@ -76,5 +76,5 @@ Stand only, Running Count without True Count, no penetration.
 feature work, because it blocks the deploy. Then the seam and the math, then Act
 1, then **deploy immediately** rather than at the end.
 
-**Commits.** _(fill in once the design commit lands — the files above are
-currently uncommitted)_
+**Commits.** `e863878` — the whole design landed as one commit, deliberately
+before any implementation, so the history shows the thinking happened first.
