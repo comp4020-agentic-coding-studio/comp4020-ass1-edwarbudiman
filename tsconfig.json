@@ -3,6 +3,9 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
+    // Imports carry the .ts extension so `node scripts/figures.ts` can run the
+    // engine directly through Node's type stripping, with no build step.
+    "allowImportingTsExtensions": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["vite/client", "node"],
     "strict": true,
@@ -13,5 +16,5 @@
     "useDefineForClassFields": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["*.ts", "spec"]
+  "include": ["*.ts", "spec", "src"]
 }

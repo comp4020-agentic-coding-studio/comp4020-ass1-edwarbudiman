@@ -1170,25 +1170,10 @@
         <div class="spread">
           <div>
             <h3>Every card that could come next</h3>
-            <div class="axis-row">
-              <div class="draw">A</div>
-              <div class="draw">2</div>
-              <div class="draw">3</div>
-              <div class="draw">4</div>
-              <div class="draw">5</div>
-              <span class="split" aria-hidden="true"></span>
-              <div class="draw draw--bust">6</div>
-              <div class="draw draw--bust">7</div>
-              <div class="draw draw--bust">8</div>
-              <div class="draw draw--bust">9</div>
-              <div class="draw draw--bust">10</div>
-              <div class="draw draw--bust">J</div>
-              <div class="draw draw--bust">Q</div>
-              <div class="draw draw--bust">K</div>
-            </div>
+            <div class="axis-row" id="draws"></div>
             <div class="axis-key">
-              <span>5 / 13 survive · 38.5%</span>
-              <span class="bust">8 / 13 bust · 61.5%</span>
+              <span id="survive-key"></span>
+              <span class="bust" id="bust-key"></span>
             </div>
           </div>
 
@@ -1226,27 +1211,14 @@
 
         <div class="table">
           <div class="seat">
-            <div class="hand">
-              <div class="card">
-                <span class="suit">♦</span><span class="rank">10</span>
-              </div>
-              <div class="card">
-                <span class="suit">♣</span><span class="rank">6</span>
-              </div>
-              <div class="card card--bust">
-                <span class="suit">♥</span><span class="rank">9</span>
-              </div>
-            </div>
-            <p class="total">You<b>26</b><span class="busted">Bust</span></p>
+            <div class="hand" id="my-hand"></div>
+            <p class="total" id="my-total"></p>
           </div>
         </div>
 
         <p class="data">Dealt from the shoe. Not chosen.</p>
 
-        <p class="lede">
-          You busted. You also made the better decision. Both of those are true
-          at the same time, and holding both is the entire point of this page.
-        </p>
+        <p class="lede" id="my-copy"></p>
 
         <button class="btn btn--advance" type="button">
           Show me 1,000 more hands
@@ -1280,57 +1252,22 @@
                 plan.
               </p>
             </div>
-            <p class="vh">
-              Dealer final totals over 1,000 simulated hands: seventeen 11%,
-              eighteen 11%, nineteen 11%, twenty 33%, twenty-one 12%, bust 22%.
-            </p>
-            <div class="hist" aria-hidden="true">
-              <div class="hist-row">
-                <span class="hist-label">17</span>
-                <span class="hist-track"><i style="width: 33%"></i></span>
-                <span class="hist-value">11%</span>
-              </div>
-              <div class="hist-row">
-                <span class="hist-label">18</span>
-                <span class="hist-track"><i style="width: 33%"></i></span>
-                <span class="hist-value">11%</span>
-              </div>
-              <div class="hist-row">
-                <span class="hist-label">19</span>
-                <span class="hist-track"><i style="width: 33%"></i></span>
-                <span class="hist-value">11%</span>
-              </div>
-              <div class="hist-row">
-                <span class="hist-label">20</span>
-                <span class="hist-track"><i style="width: 100%"></i></span>
-                <span class="hist-value">33%</span>
-              </div>
-              <div class="hist-row">
-                <span class="hist-label">21</span>
-                <span class="hist-track"><i style="width: 36%"></i></span>
-                <span class="hist-value">12%</span>
-              </div>
-              <div class="hist-row hist-row--bust">
-                <span class="hist-label">Bust</span>
-                <span class="hist-track"><i style="width: 67%"></i></span>
-                <span class="hist-value">22%</span>
-              </div>
-            </div>
+            <p class="vh" id="hist-text"></p>
+            <div class="hist" id="hist" aria-hidden="true"></div>
           </div>
 
           <div>
             <h3>Every one of those 1,000 hands</h3>
             <div class="waffle-head">
               <span>Hit · seeded simulation</span>
-              <span id="counter">1,000 / 1,000</span>
+              <span id="counter"></span>
             </div>
-            <div class="waffle" id="waffle" role="img"
-              aria-label="One thousand play-outs of hitting this hand: 540 lost, 380 won, 80 pushed. Your own hand is one of the 540 that lost."></div>
+            <div class="waffle" id="waffle" role="img" aria-label=""></div>
             <p class="waffle-legend">
-              <span><i style="background: var(--red-wash); outline: 1px solid var(--red)"></i>540 lost</span>
-              <span><i style="background: color-mix(in srgb, var(--ink) 22%, transparent)"></i>380 won</span>
+              <span><i style="background: var(--red-wash); outline: 1px solid var(--red)"></i><span id="legend-lost"></span></span>
+              <span><i style="background: color-mix(in srgb, var(--ink) 22%, transparent)"></i><span id="legend-won"></span></span>
               <span
-                ><i style="background: color-mix(in srgb, var(--rule) 55%, transparent)"></i>80
+                ><i style="background: color-mix(in srgb, var(--rule) 55%, transparent)"></i><span id="legend-push"></span>
                 <button
                   class="why why--inline"
                   type="button"
@@ -1340,21 +1277,13 @@
                   push?
                 </button>
               </span>
-              <span><i style="background: var(--red); outline: 2px solid var(--pin); outline-offset: 1px"></i>you</span>
+              <span><i id="legend-you"></i>you</span>
             </p>
             <div id="why-push" popover style="position-anchor: --a-push">
               <p class="pop-title">Push</p>
               <p>Nobody won. Your bet comes back.</p>
             </div>
-            <p class="lede">
-              You are the ringed mark. You lost, along with 539 others — and one
-              mark out of a thousand is not evidence about the decision that
-              produced it.
-            </p>
-            <p class="note">
-              <em>Figures illustrative in this styleframe; the shipped page
-                computes them from the seeded simulation.</em>
-            </p>
+            <p class="lede" id="waffle-copy"></p>
           </div>
         </div>
 
@@ -1389,9 +1318,11 @@
             </div>
 
             <div>
-              <div class="meter-head"><span>Cards remaining</span><b>268</b></div>
+              <div class="meter-head">
+                <span>Cards remaining</span><b id="shoe-remaining"></b>
+              </div>
               <div class="shoe">
-                <span class="remaining" style="flex: 0 0 86%"></span>
+                <span class="remaining" id="shoe-bar"></span>
                 <span class="spent"></span>
               </div>
             </div>
@@ -1400,7 +1331,7 @@
               <span class="tray-stack" aria-hidden="true">
                 <i></i><i></i><i></i><i></i><i></i>
               </span>
-              <span class="tray-count"><b>44</b> cards discarded</span>
+              <span class="tray-count" id="tray-count"></span>
               <button
                 class="why why--inline"
                 type="button"
@@ -1411,30 +1342,9 @@
               </button>
             </div>
             <div id="tray" popover style="position-anchor: --a-tray">
-              <p class="pop-title">Out of the shoe · 44 cards</p>
-              <div class="axis-row discard-axis">
-                <div class="draw">A</div>
-                <div class="draw">2</div>
-                <div class="draw">3</div>
-                <div class="draw">4</div>
-                <div class="draw">5</div>
-                <span class="split" aria-hidden="true"></span>
-                <div class="draw">6</div>
-                <div class="draw">7</div>
-                <div class="draw">8</div>
-                <div class="draw">9</div>
-                <div class="draw">10</div>
-                <div class="draw">J</div>
-                <div class="draw">Q</div>
-                <div class="draw">K</div>
-              </div>
-              <div class="axis-row count">
-                <span>3</span><span>4</span><span>2</span><span>5</span>
-                <span>6</span>
-                <span class="split" aria-hidden="true" style="background: none"></span>
-                <span>3</span><span>4</span><span>2</span><span>3</span>
-                <span>3</span><span>4</span><span>3</span><span>2</span>
-              </div>
+              <p class="pop-title" id="tray-title"></p>
+              <div class="axis-row discard-axis" id="discard-strip"></div>
+              <div class="axis-row count" id="discard-counts"></div>
               <p style="margin-top: 0.7rem">
                 These cards are gone either way. Under finite shoe every number
                 above already counts them. Under independent draw they are lying
@@ -1445,59 +1355,13 @@
 
           <div>
             <h3>How many of each rank are left</h3>
-            <p class="axis-full-label">24 — a full rank ⌄</p>
-            <div class="axis-row axis-bars">
-              <span class="bar" style="height: 87.5%"></span>
-              <span class="bar" style="height: 83.3%"></span>
-              <span class="bar" style="height: 91.7%"></span>
-              <span class="bar" style="height: 79.2%"></span>
-              <span class="bar bar--low" style="height: 75%"></span>
-              <span class="split" aria-hidden="true"></span>
-              <span class="bar" style="height: 87.5%"></span>
-              <span class="bar" style="height: 83.3%"></span>
-              <span class="bar" style="height: 91.7%"></span>
-              <span class="bar" style="height: 87.5%"></span>
-              <span class="bar" style="height: 87.5%"></span>
-              <span class="bar" style="height: 83.3%"></span>
-              <span class="bar" style="height: 87.5%"></span>
-              <span class="bar" style="height: 91.7%"></span>
-            </div>
-            <div class="axis-row" style="padding-top: 0.35rem">
-              <div class="draw">A</div>
-              <div class="draw">2</div>
-              <div class="draw">3</div>
-              <div class="draw">4</div>
-              <div class="draw" aria-pressed="true">5</div>
-              <span class="split" aria-hidden="true"></span>
-              <div class="draw">6</div>
-              <div class="draw">7</div>
-              <div class="draw">8</div>
-              <div class="draw">9</div>
-              <div class="draw">10</div>
-              <div class="draw">J</div>
-              <div class="draw">Q</div>
-              <div class="draw">K</div>
-            </div>
+            <p class="axis-full-label" id="full-rank-label"></p>
+            <div class="axis-row axis-bars" id="comp-bars"></div>
+            <div class="axis-row" id="comp-strip" style="padding-top: 0.35rem"></div>
 
-            <div class="slot">
-              <p class="slot-rank">Five</p>
-              <dl>
-                <dt>Left in shoe</dt>
-                <dd>18 of 24</dd>
-                <dt>Chance next</dt>
-                <dd>6.72%</dd>
-                <dt>Was</dt>
-                <dd>7.69% — 24 of 312</dd>
-                <dt class="expectation">Expect</dt>
-                <dd class="expectation">about 67 in every 1,000 draws</dd>
-              </dl>
-            </div>
+            <div class="slot" id="slot"></div>
 
-            <p class="lede">
-              Six fives are gone, and the five is one of only five ranks that
-              save a sixteen. Only one of these two worlds makes remembering
-              worth anything.
-            </p>
+            <p class="lede" id="act2-copy"></p>
           </div>
         </div>
       </section>
@@ -1511,40 +1375,10 @@
         <div class="spread">
           <div>
             <h3>How the count works</h3>
-            <div class="axis-row">
-              <div class="draw">A</div>
-              <div class="draw">2</div>
-              <div class="draw">3</div>
-              <div class="draw">4</div>
-              <div class="draw">5</div>
-              <span class="split" aria-hidden="true"></span>
-              <div class="draw">6</div>
-              <div class="draw">7</div>
-              <div class="draw">8</div>
-              <div class="draw">9</div>
-              <div class="draw">10</div>
-              <div class="draw">J</div>
-              <div class="draw">Q</div>
-              <div class="draw">K</div>
-            </div>
-            <div class="axis-row axis-values">
-              <span class="minus">−1</span>
-              <span class="plus">+1</span>
-              <span class="plus">+1</span>
-              <span class="plus just-left">+1</span>
-              <span class="plus">+1</span>
-              <span class="split" aria-hidden="true" style="background: none"></span>
-              <span class="plus">+1</span>
-              <span>0</span>
-              <span>0</span>
-              <span>0</span>
-              <span class="minus">−1</span>
-              <span class="minus">−1</span>
-              <span class="minus">−1</span>
-              <span class="minus">−1</span>
-            </div>
+            <div class="axis-row" id="count-strip"></div>
+            <div class="axis-row axis-values" id="count-values"></div>
             <p class="note">
-              A four just left the shoe: <b>+1</b>.
+              <span id="count-last"></span>
               <button
                 class="why"
                 type="button"
@@ -1566,17 +1400,17 @@
           </div>
 
           <div>
-            <div class="meter-head"><span>Running count</span><b>+6</b></div>
-            <div class="meter-head"><span>Cards remaining</span><b>212</b></div>
+            <div class="meter-head">
+              <span>Running count</span><b id="count-value"></b>
+            </div>
+            <div class="meter-head">
+              <span>Cards remaining</span><b id="count-remaining"></b>
+            </div>
             <div class="shoe">
-              <span class="remaining" style="flex: 0 0 68%"></span>
+              <span class="remaining" id="count-shoe-bar"></span>
               <span class="spent"></span>
             </div>
-            <p class="lede">
-              +6 means the shoe still holds its tens and aces. You now hold the
-              best information a blackjack player can legitimately have, and it
-              says nothing whatsoever about the next card.
-            </p>
+            <p class="lede" id="act3-copy"></p>
           </div>
         </div>
       </section>
@@ -1646,7 +1480,7 @@
       </section>
     </div>
 
-    <script>
+    <script type="module">
       // ---- theme: lives outside the seam. Flips one attribute, touches no State.
       const root = document.documentElement;
       const btn = document.getElementById("theme");
@@ -1663,47 +1497,171 @@
         root.dataset.theme = isDark() ? "light" : "dark";
       });
 
-      // ---- waffle: 1,000 marks, one per play-out. Throwaway demo data —
-      //      the shipped page fills this from the seeded simulation as it runs.
-      const waffle = document.getElementById("waffle");
-      const counter = document.getElementById("counter");
-      const YOU = 431; // your play-out, somewhere in the lost pile
-      const results = [];
-      for (let i = 0; i < 1000; i++) {
-        results.push(i < 540 ? "lost" : i < 620 ? "push" : "won");
-      }
+      // ---- every number below comes from src/engine via scripts/figures.ts.
+      //      Nothing on this proof sheet is a figure somebody typed.
+      const SUITS = ["♠", "♥", "♦", "♣"];
+      const el = (id) => document.getElementById(id);
+      const set = (id, text) => {
+        const node = el(id);
+        if (node) node.textContent = text;
+      };
+      const make = (tag, className, text) => {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text !== undefined) node.textContent = text;
+        return node;
+      };
+      const splitCell = (transparent) => {
+        const s = make("span", "split");
+        s.setAttribute("aria-hidden", "true");
+        if (transparent) s.style.background = "none";
+        return s;
+      };
+      /** Lay thirteen cells out on the axis, with the bust line after the 5th. */
+      const onAxis = (container, cells, transparentSplit) => {
+        container.replaceChildren();
+        cells.forEach((cell, i) => {
+          if (i === 5) container.append(splitCell(transparentSplit));
+          container.append(cell);
+        });
+      };
+
+      const figures = await fetch("./figures.json").then((r) => r.json());
+      const { act1, act2, act3, fullRank, trials } = figures;
+      const n = (value) => value.toLocaleString();
+
+      // ---- Act 1, beat 2 ---------------------------------------------------
+      onAxis(
+        el("draws"),
+        act1.outcomes.map((outcome) =>
+          make("div", `draw${outcome.busts ? " draw--bust" : ""}`, outcome.rank),
+        ),
+      );
+      set(
+        "survive-key",
+        `${act1.surviving.length} / 13 survive · ${act1.survivePercent}%`,
+      );
+      set("bust-key", `${act1.busting.length} / 13 bust · ${act1.bustPercent}%`);
+
+      // ---- Act 1, beat 3: whatever the shoe actually dealt ------------------
+      const mine = act1.mine;
+      el("my-hand").replaceChildren(
+        ...mine.ranks.map((rank, i) => {
+          const card = make(
+            "div",
+            `card${mine.busted && i === mine.ranks.length - 1 ? " card--bust" : ""}`,
+          );
+          card.append(
+            make("span", "suit", SUITS[i % SUITS.length]),
+            make("span", "rank", rank),
+          );
+          return card;
+        }),
+      );
+      const total = el("my-total");
+      total.replaceChildren(document.createTextNode("You"), make("b", null, String(mine.total)));
+      if (mine.busted) total.append(make("span", "busted", "Bust"));
+
+      // ADR 0001: the deal is honest, so the copy answers whatever turned up —
+      // including the good result, which is the harder one to write.
+      set(
+        "my-copy",
+        mine.busted
+          ? "You busted. You also made the better decision. Both of those are true at the same time, and holding both is the entire point of this page."
+          : `You drew a ${mine.drawn} and made ${mine.total}. That does not prove the decision was good either — the same choice busts more often than it does this.`,
+      );
+
+      // ---- Act 1, beat 4 ---------------------------------------------------
+      const worst = Math.max(...act1.dealer.map((row) => row.percent));
+      el("hist").replaceChildren(
+        ...act1.dealer.map((row) => {
+          const line = make(
+            "div",
+            `hist-row${row.bucket === "bust" ? " hist-row--bust" : ""}`,
+          );
+          const track = make("span", "hist-track");
+          const bar = make("i");
+          bar.style.width = `${(row.percent / worst) * 100}%`;
+          track.append(bar);
+          line.append(
+            make("span", "hist-label", row.bucket === "bust" ? "Bust" : row.bucket),
+            track,
+            make("span", "hist-value", `${row.percent}%`),
+          );
+          return line;
+        }),
+      );
+      set(
+        "hist-text",
+        `Dealer final totals over ${n(trials)} simulated hands: ${act1.dealer
+          .map((row) => `${row.bucket} ${row.percent}%`)
+          .join(", ")}.`,
+      );
+
+      const { lost, push, won } = act1.settlements;
+      set("legend-lost", `${n(lost)} lost`);
+      set("legend-won", `${n(won)} won`);
+      set("legend-push", n(push));
+      set("counter", `${n(trials)} / ${n(trials)}`);
+
+      const mineResult = mine.settlement;
+      el("legend-you").style.background =
+        mineResult === "lost" ? "var(--red)" : mineResult === "won" ? "var(--ink)" : "var(--ink-dim)";
+      el("legend-you").style.outline = "2px solid var(--pin)";
+      el("legend-you").style.outlineOffset = "1px";
+
+      set(
+        "waffle-copy",
+        `You are the ringed mark — the first of the ${n(trials)}, and the only one that actually happened to you. ${
+          mineResult === "won"
+            ? `You won, along with ${n(won - 1)} others.`
+            : `You lost, along with ${n(lost - 1)} others.`
+        } One mark out of ${n(trials)} is not evidence about the decision that produced it.`,
+      );
+
+      // ---- the waffle ------------------------------------------------------
+      const waffle = el("waffle");
+      waffle.setAttribute(
+        "aria-label",
+        `${n(trials)} play-outs of hitting this hand: ${n(lost)} lost, ${n(won)} won, ${n(push)} pushed. Your own hand is one of them.`,
+      );
+
+      const results = [
+        ...Array(lost).fill("lost"),
+        ...Array(push).fill("push"),
+        ...Array(won).fill("won"),
+      ];
       // deterministic shuffle so the plate looks the same every reload
-      let seed = 20260816;
+      let seed = figures.seed;
       const rand = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
       for (let i = results.length - 1; i > 0; i--) {
         const j = Math.floor(rand() * (i + 1));
         [results[i], results[j]] = [results[j], results[i]];
       }
-      results[YOU] = "lost";
+      // your hand is trial one of the same seeded run, so it is genuinely in here
+      const YOU = results.indexOf(mineResult);
 
       const cells = results.map((r, i) => {
-        const s = document.createElement("span");
-        s.className = "pending";
-        // fill = outcome, ring = identity
+        const s = make("span", "pending");
         s.dataset.result = i === YOU ? `${r} you` : r;
         return s;
       });
-      waffle.append(...cells);
+      waffle.replaceChildren(...cells);
 
       const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const fill = (n) => {
-        for (let i = 0; i < n; i++) cells[i].className = cells[i].dataset.result;
-        counter.textContent = `${n.toLocaleString()} / 1,000`;
+      const fill = (shown) => {
+        for (let i = 0; i < shown; i++) cells[i].className = cells[i].dataset.result;
+        set("counter", `${n(shown)} / ${n(trials)}`);
       };
 
       if (reduce) {
-        fill(1000);
+        fill(trials);
       } else {
         let shown = 0;
         const step = () => {
-          shown = Math.min(1000, shown + 24);
+          shown = Math.min(trials, shown + 24);
           fill(shown);
-          if (shown < 1000) requestAnimationFrame(step);
+          if (shown < trials) requestAnimationFrame(step);
         };
         new IntersectionObserver((entries, obs) => {
           if (entries[0].isIntersecting) {
@@ -1712,6 +1670,112 @@
           }
         }).observe(waffle);
       }
+
+      // ---- Act 2 -----------------------------------------------------------
+      const thinnest = act2.thinnest;
+      set("full-rank-label", `${fullRank} — a full rank ⌄`);
+      set("shoe-remaining", n(act2.remaining));
+      el("shoe-bar").style.flex = `0 0 ${(act2.remaining / 312) * 100}%`;
+      el("tray-count").replaceChildren(
+        make("b", null, n(act2.discarded)),
+        document.createTextNode(" cards discarded"),
+      );
+      set("tray-title", `Out of the shoe · ${act2.discarded} cards`);
+
+      onAxis(
+        el("comp-bars"),
+        act2.composition.map((rank) => {
+          const bar = make(
+            "span",
+            `bar${rank.rank === thinnest.rank ? " bar--low" : ""}`,
+          );
+          bar.style.height = `${(rank.left / fullRank) * 100}%`;
+          return bar;
+        }),
+      );
+      onAxis(
+        el("comp-strip"),
+        act2.composition.map((rank) => {
+          const cell = make("div", "draw", rank.rank);
+          if (rank.rank === thinnest.rank) cell.setAttribute("aria-pressed", "true");
+          return cell;
+        }),
+      );
+      onAxis(
+        el("discard-strip"),
+        act2.composition.map((rank) => make("div", "draw", rank.rank)),
+      );
+      onAxis(
+        el("discard-counts"),
+        act2.composition.map((rank) => make("span", null, String(rank.gone))),
+        true,
+      );
+
+      const NAMES = { A: "Ace", J: "Jack", Q: "Queen", K: "King" };
+      const rows = [
+        ["Left in shoe", `${thinnest.left} of ${fullRank}`],
+        ["Chance next", `${thinnest.percent}%`],
+        ["Was", `${thinnest.wasPercent}% — ${fullRank} of 312`],
+      ];
+      const dl = make("dl");
+      for (const [term, value] of rows) {
+        dl.append(make("dt", null, term), make("dd", null, value));
+      }
+      dl.append(
+        make("dt", "expectation", "Expect"),
+        make(
+          "dd",
+          "expectation",
+          `about ${Math.round((thinnest.percent / 100) * 1000)} in every 1,000 draws`,
+        ),
+      );
+      el("slot").replaceChildren(
+        make("p", "slot-rank", NAMES[thinnest.rank] ?? `The ${thinnest.rank}s`),
+        dl,
+      );
+
+      const savesSixteen = act1.surviving.includes(thinnest.rank);
+      set(
+        "act2-copy",
+        `${thinnest.gone} ${NAMES[thinnest.rank] ?? thinnest.rank}s are gone${
+          savesSixteen
+            ? `, and the ${thinnest.rank} is one of only ${act1.surviving.length} ranks that save a sixteen`
+            : ""
+        }. Only one of these two worlds makes remembering worth anything.`,
+      );
+
+      // ---- Act 3 -----------------------------------------------------------
+      const signed = (value) => (value > 0 ? `+${value}` : String(value));
+      onAxis(
+        el("count-strip"),
+        act2.composition.map((rank) => make("div", "draw", rank.rank)),
+      );
+      const lastRank = act3.lastFour.at(-1);
+      onAxis(
+        el("count-values"),
+        act2.composition.map((rank) => {
+          const cls = [
+            rank.hiLo > 0 ? "plus" : rank.hiLo < 0 ? "minus" : "",
+            rank.rank === lastRank.rank ? "just-left" : "",
+          ]
+            .filter(Boolean)
+            .join(" ");
+          return make("span", cls, rank.hiLo > 0 ? "+1" : rank.hiLo < 0 ? "−1" : "0");
+        }),
+        true,
+      );
+      el("count-last").replaceChildren(
+        document.createTextNode(`A ${lastRank.rank} just left the shoe: `),
+        make("b", null, signed(lastRank.hiLo)),
+        document.createTextNode(". "),
+      );
+      set("count-value", signed(act3.count));
+      set("count-remaining", n(act3.remaining));
+      el("count-shoe-bar").style.flex = `0 0 ${(act3.remaining / 312) * 100}%`;
+      set(
+        "act3-copy",
+        `${signed(act3.count)} means the shoe still holds its tens and aces — the highest this count has been all session. You now hold the best information a blackjack player can legitimately have, and it says nothing whatsoever about the next card.`,
+      );
     </script>
   </body>
 </html>

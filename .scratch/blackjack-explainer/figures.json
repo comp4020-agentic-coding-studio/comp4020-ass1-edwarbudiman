@@ -1,0 +1,316 @@
+{
+  "seed": 20260816,
+  "trials": 1000,
+  "fullRank": 24,
+  "hand": {
+    "ranks": [
+      "10",
+      "6"
+    ],
+    "total": 16,
+    "upcard": "10"
+  },
+  "act1": {
+    "outcomes": [
+      {
+        "rank": "A",
+        "total": 17,
+        "busts": false,
+        "probability": 0.07766990291262135,
+        "percent": 7.8
+      },
+      {
+        "rank": "2",
+        "total": 18,
+        "busts": false,
+        "probability": 0.07766990291262135,
+        "percent": 7.8
+      },
+      {
+        "rank": "3",
+        "total": 19,
+        "busts": false,
+        "probability": 0.07766990291262135,
+        "percent": 7.8
+      },
+      {
+        "rank": "4",
+        "total": 20,
+        "busts": false,
+        "probability": 0.07766990291262135,
+        "percent": 7.8
+      },
+      {
+        "rank": "5",
+        "total": 21,
+        "busts": false,
+        "probability": 0.07766990291262135,
+        "percent": 7.8
+      },
+      {
+        "rank": "6",
+        "total": 22,
+        "busts": true,
+        "probability": 0.0744336569579288,
+        "percent": 7.4
+      },
+      {
+        "rank": "7",
+        "total": 23,
+        "busts": true,
+        "probability": 0.07766990291262135,
+        "percent": 7.8
+      },
+      {
+        "rank": "8",
+        "total": 24,
+        "busts": true,
+        "probability": 0.07766990291262135,
+        "percent": 7.8
+      },
+      {
+        "rank": "9",
+        "total": 25,
+        "busts": true,
+        "probability": 0.07766990291262135,
+        "percent": 7.8
+      },
+      {
+        "rank": "10",
+        "total": 26,
+        "busts": true,
+        "probability": 0.07119741100323625,
+        "percent": 7.1
+      },
+      {
+        "rank": "J",
+        "total": 26,
+        "busts": true,
+        "probability": 0.07766990291262135,
+        "percent": 7.8
+      },
+      {
+        "rank": "Q",
+        "total": 26,
+        "busts": true,
+        "probability": 0.07766990291262135,
+        "percent": 7.8
+      },
+      {
+        "rank": "K",
+        "total": 26,
+        "busts": true,
+        "probability": 0.07766990291262135,
+        "percent": 7.8
+      }
+    ],
+    "surviving": [
+      "A",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "busting": [
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "J",
+      "Q",
+      "K"
+    ],
+    "survivePercent": 38.8,
+    "bustPercent": 61.2,
+    "mine": {
+      "drawn": "4",
+      "ranks": [
+        "10",
+        "6",
+        "4"
+      ],
+      "total": 20,
+      "busted": false,
+      "settlement": "won"
+    },
+    "dealer": [
+      {
+        "bucket": "17",
+        "count": 109,
+        "percent": 10.9
+      },
+      {
+        "bucket": "18",
+        "count": 118,
+        "percent": 11.8
+      },
+      {
+        "bucket": "19",
+        "count": 110,
+        "percent": 11
+      },
+      {
+        "bucket": "20",
+        "count": 332,
+        "percent": 33.2
+      },
+      {
+        "bucket": "21",
+        "count": 126,
+        "percent": 12.6
+      },
+      {
+        "bucket": "bust",
+        "count": 205,
+        "percent": 20.5
+      }
+    ],
+    "settlements": {
+      "lost": 757,
+      "push": 57,
+      "won": 186
+    }
+  },
+  "act2": {
+    "remaining": 265,
+    "discarded": 47,
+    "composition": [
+      {
+        "rank": "A",
+        "left": 22,
+        "gone": 2,
+        "percent": 8.3,
+        "wasPercent": 7.7,
+        "hiLo": -1
+      },
+      {
+        "rank": "2",
+        "left": 22,
+        "gone": 2,
+        "percent": 8.3,
+        "wasPercent": 7.7,
+        "hiLo": 1
+      },
+      {
+        "rank": "3",
+        "left": 18,
+        "gone": 6,
+        "percent": 6.8,
+        "wasPercent": 7.7,
+        "hiLo": 1
+      },
+      {
+        "rank": "4",
+        "left": 22,
+        "gone": 2,
+        "percent": 8.3,
+        "wasPercent": 7.7,
+        "hiLo": 1
+      },
+      {
+        "rank": "5",
+        "left": 21,
+        "gone": 3,
+        "percent": 7.9,
+        "wasPercent": 7.7,
+        "hiLo": 1
+      },
+      {
+        "rank": "6",
+        "left": 18,
+        "gone": 6,
+        "percent": 6.8,
+        "wasPercent": 7.7,
+        "hiLo": 1
+      },
+      {
+        "rank": "7",
+        "left": 21,
+        "gone": 3,
+        "percent": 7.9,
+        "wasPercent": 7.7,
+        "hiLo": 0
+      },
+      {
+        "rank": "8",
+        "left": 22,
+        "gone": 2,
+        "percent": 8.3,
+        "wasPercent": 7.7,
+        "hiLo": 0
+      },
+      {
+        "rank": "9",
+        "left": 19,
+        "gone": 5,
+        "percent": 7.2,
+        "wasPercent": 7.7,
+        "hiLo": 0
+      },
+      {
+        "rank": "10",
+        "left": 19,
+        "gone": 5,
+        "percent": 7.2,
+        "wasPercent": 7.7,
+        "hiLo": -1
+      },
+      {
+        "rank": "J",
+        "left": 21,
+        "gone": 3,
+        "percent": 7.9,
+        "wasPercent": 7.7,
+        "hiLo": -1
+      },
+      {
+        "rank": "Q",
+        "left": 20,
+        "gone": 4,
+        "percent": 7.5,
+        "wasPercent": 7.7,
+        "hiLo": -1
+      },
+      {
+        "rank": "K",
+        "left": 20,
+        "gone": 4,
+        "percent": 7.5,
+        "wasPercent": 7.7,
+        "hiLo": -1
+      }
+    ],
+    "thinnest": {
+      "rank": "3",
+      "left": 18,
+      "gone": 6,
+      "percent": 6.8,
+      "wasPercent": 7.7,
+      "hiLo": 1
+    }
+  },
+  "act3": {
+    "remaining": 265,
+    "count": 2,
+    "cardsSeen": 44,
+    "lastFour": [
+      {
+        "rank": "6",
+        "hiLo": 1
+      },
+      {
+        "rank": "10",
+        "hiLo": -1
+      },
+      {
+        "rank": "9",
+        "hiLo": 0
+      },
+      {
+        "rank": "5",
+        "hiLo": 1
+      }
+    ]
+  }
+}
