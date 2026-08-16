@@ -148,3 +148,39 @@ depends on a third party being reachable.
 **Commits.** `d6215f8...` through the accessibility pass — 178 tests across 12
 files, green, deployed at
 https://comp4020-agentic-coding-studio.github.io/comp4020-ass1-edwarbudiman/
+
+### The code review, and what it caught
+
+Running `/code-review` over the whole range afterwards returned ten findings
+against a green 178-test suite. That number is the point: **every one of these
+was invisible to the tests the same agents had just written.** Confirmed each
+before acting rather than taking the review at face value.
+
+The one that mattered most: `dealerDistribution` removes the dealer's cards
+from the Shoe itself, and both `acts/act-1.ts` and `scripts/figures.ts` handed
+it a Shoe those cards were *already* gone from. Three tens removed for two
+cards on the table. Verified directly — the opening Shoe holds 22 tens, the
+histogram was simulating from 21 — and it had been baked into the shipped
+`figures.json` since the engine was built. The dealer histogram moved on the
+fix: 20 went 332 → 335, bust 205 → 207.
+
+Two more were structural rather than arithmetic:
+
+- `replayWithOtherDecision` reset the Shoe to the opening deal but left Act 2's
+  free-play hand alone, so the Explainer could hold a hand whose exact cards
+  were simultaneously back in the Shoe, beside a tray claiming three discards.
+- Beat 4 recomputed from `state.model`, so switching the Deal Model in Act 2
+  and returning rewrote a report on a hand that had already been played — 38.8%
+  silently becoming 38.5% under copy still reading "the only one that actually
+  happened to you". Fixed by recording the Deal Model in force at deal time.
+
+And the accessibility pass had fixed exactly half of a focus bug: it gave every
+control inside the mount a stable id, but the shell still restored focus when
+the focused element was *outside* the mount, so the beat 4 climb yanked focus
+off the nav and the Reference drawer on every frame. Scoping restoration to the
+mount fixed the half a targeted pass had no reason to look at.
+
+**The harness lesson, again.** Tests written by the agent that wrote the code
+inherit that agent's blind spots. The review was worth more than any single
+ticket in the set, and it should run before the work is called done, not after
+it is already deployed.
