@@ -71,18 +71,40 @@ Act 3's Hi-Lo values.
 solid fill at these heights reads as a black mass, not a chart.
 
 **Waffle.** `repeat(40, 1fr)` × 25 rows = 1,000 marks, one per Play-out. Lost is
-`--red-wash`, won is ink at 22%, push is `--rule` at 55%, and the visitor's own
-Play-out is `--pin` solid with an outline — the only solid mark on the page. Marks
-start `pending` and fill as the simulation runs; the counter is the fill, not an
-animation over a finished number. Under `prefers-reduced-motion` it renders
-complete. Needs a text equivalent on the container.
+`--red-wash`, won is ink at 22%, push is `--rule` at 55%. The visitor's own
+Play-out is filled in **its outcome colour** — solid `--red` if it lost, solid
+`--ink` if it won — and ringed in `--pin`. Fill is the outcome; the ring is the
+identity. Marks start `pending` and fill as the simulation runs; the counter is
+the fill, not an animation over a finished number. Under
+`prefers-reduced-motion` it renders complete. Needs a text equivalent on the
+container.
 
 **Shoe.** An edge-on stack of card edges — `repeating-linear-gradient` at 2px/1px
 — with a 2px ink cut line at the boundary and an empty remainder. It thins; it is
 not a progress bar.
 
 **Detail slot.** Bordered box pinned under the axis. Selected rank as a display
-heading, then a `dl` of tabular figures. Replaces a popover deliberately.
+heading, then a `dl` of tabular figures. Stays a slot rather than a popover
+because these numbers get compared across thirteen ranks in a row.
+
+**Popover.** Native `[popover]` + `popovertarget`, anchored with `position-area`
+and `position-try-fallbacks: flip-block, flip-inline` so it reflows at 390 in CSS
+alone. Trigger is a small `?` button, or a labelled inline button where the word
+itself is the question (`push?`, `See them`). Click/tap only — no hover. Where
+anchor positioning is unsupported it falls back to the top layer's centred
+default, which is acceptable. Carries: definitions, "why this matters", and the
+discard tray.
+
+**Discard tray.** From Act 2 onward. A compact overlapping card stack, a count,
+and a `See them` button opening a popover that lays the discards out **on the
+thirteen-rank axis** with a per-rank tally underneath — the axis's fourth use. It
+appears under both Deal Models, and that is the argument: under Independent Draw
+the same cards sit in the same tray and the bars still do not move.
+
+**Copy.** A sentence stays visible only if it says something the chart cannot, or
+a user story requires the visitor be told. Everything else goes in a popover or
+becomes the chart's `.vh` screen-reader description. The thesis and any warning
+are never behind a click.
 
 **Buttons.** Every action is a real `<button>`. Hit and Stand carry identical
 visual weight — the page must not nudge an intuition it is about to test. Advance

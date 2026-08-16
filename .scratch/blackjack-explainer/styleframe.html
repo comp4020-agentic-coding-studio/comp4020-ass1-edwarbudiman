@@ -645,11 +645,25 @@
         background: transparent;
       }
 
-      /* your one result: the only solid mark on the page */
+      /* Your own play-out. Fill is the OUTCOME, ring is the IDENTITY —
+         so red still means exactly one thing and the ring means "this one
+         is you", never "this one is special". */
       .waffle .you {
-        background: var(--pin);
         outline: 2px solid var(--pin);
-        outline-offset: 2px;
+        outline-offset: 1px;
+        z-index: 1;
+      }
+
+      .waffle .you.lost {
+        background: var(--red);
+      }
+
+      .waffle .you.won {
+        background: var(--ink);
+      }
+
+      .waffle .you.push {
+        background: var(--ink-dim);
       }
 
       .waffle-head {
@@ -855,6 +869,144 @@
         max-width: 16ch;
       }
 
+      /* ==================================================================
+         OPTIONAL DETAIL — native popover, anchored in CSS only.
+         Click/tap activated: no hover, because hover does not exist at
+         390×844 or for a keyboard user, and this page is marked by tabbing.
+         Where anchor positioning is unsupported the popover falls back to
+         the top layer's centred default, which is a fine second best.
+      ================================================================== */
+
+      .why {
+        font-family: var(--face-data);
+        font-size: 0.6875rem;
+        line-height: 1;
+        color: var(--ink-dim);
+        background: none;
+        border: 1px solid var(--rule);
+        border-radius: 50%;
+        width: 1.25rem;
+        height: 1.25rem;
+        padding: 0;
+        cursor: pointer;
+        vertical-align: 1px;
+      }
+
+      .why:hover {
+        color: var(--ink);
+        border-color: var(--ink);
+      }
+
+      .why--inline {
+        border-radius: 2px;
+        width: auto;
+        height: auto;
+        padding: 0.05rem 0.3rem;
+      }
+
+      [popover] {
+        position: absolute;
+        position-area: block-end span-inline-end;
+        position-try-fallbacks: flip-block, flip-inline;
+        margin: 0.4rem 0 0;
+        inline-size: min(20rem, calc(100vw - 2.5rem));
+        background: var(--card);
+        color: var(--ink);
+        border: 1.5px solid var(--ink);
+        border-radius: 0;
+        padding: 0.9rem 1rem;
+        font-size: 0.9375rem;
+        line-height: 1.5;
+        box-shadow: 0 10px 24px -10px var(--shadow-far);
+      }
+
+      [popover] p {
+        margin: 0;
+        max-width: none;
+      }
+
+      [popover] p + p {
+        margin-top: 0.6rem;
+      }
+
+      [popover]::backdrop {
+        background: transparent;
+      }
+
+      .pop-title {
+        font-family: var(--face-display);
+        font-size: 0.6875rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--ink-dim);
+        margin: 0 0 0.4rem;
+      }
+
+      /* text equivalents: cut from the page, kept for screen readers */
+      .vh {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+
+      /* ---------- the discard tray ---------- */
+
+      .tray {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 1.25rem;
+        border: 1px solid var(--rule);
+        padding: 0.6rem 0.75rem;
+      }
+
+      .tray-stack {
+        display: flex;
+        flex: none;
+      }
+
+      .tray-stack i {
+        display: block;
+        width: 1rem;
+        height: 1.4rem;
+        border: 1px solid var(--card-edge);
+        border-radius: 2px;
+        background: var(--card);
+        box-shadow: 0 1px 1px var(--shadow-near);
+      }
+
+      .tray-stack i + i {
+        margin-left: -0.62rem;
+      }
+
+      .tray-count {
+        font-family: var(--face-data);
+        font-size: 0.75rem;
+        font-variant-numeric: tabular-nums;
+        color: var(--ink-dim);
+        flex: 1;
+      }
+
+      .tray-count b {
+        color: var(--ink);
+      }
+
+      .discard-axis {
+        margin-top: 0.6rem;
+      }
+
+      .discard-axis .count {
+        font-family: var(--face-data);
+        font-size: 0.625rem;
+        text-align: center;
+        color: var(--ink-dim);
+        padding-top: 0.2rem;
+      }
+
       /* ---------- proof-sheet scaffolding (styleframe only) ---------- */
 
       .plate {
@@ -1041,16 +1193,26 @@
           </div>
 
           <div>
-            <p>
-              Five ranks keep you alive. Eight bust you. That is the whole of the
-              choice, and it does not improve if you stand — standing hands the
-              hand to a dealer showing a ten and asks them not to make one.
-            </p>
-            <p class="note">
+            <p class="lede">
               Both choices lose more often than they win. The better decision is
-              the one that loses less, and that is the whole definition of better
-              you are going to get.
+              the one that loses less.
+              <button
+                class="why"
+                type="button"
+                popovertarget="why-stand"
+                style="anchor-name: --a-stand"
+                aria-label="Why standing does not help"
+              >
+                ?
+              </button>
             </p>
+            <div id="why-stand" popover style="position-anchor: --a-stand">
+              <p class="pop-title">Why standing does not help</p>
+              <p>
+                Standing does not avoid the loss, it hands the hand to a dealer
+                showing a ten and asks them not to make one. They usually do.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -1097,8 +1259,32 @@
 
         <div class="spread">
           <div>
-            <h3>What the dealer made · 1,000 hands</h3>
-            <div class="hist">
+            <h3>
+              What the dealer made · 1,000 hands
+              <button
+                class="why"
+                type="button"
+                popovertarget="why-dealer"
+                style="anchor-name: --a-dealer"
+                aria-label="What this chart means"
+              >
+                ?
+              </button>
+            </h3>
+            <div id="why-dealer" popover style="position-anchor: --a-dealer">
+              <p class="pop-title">Reading this</p>
+              <p>
+                The hand was already bad before you touched it. A dealer showing
+                a ten reaches twenty about a third of the time, and busts only
+                about one time in five — so waiting for them to fail is not a
+                plan.
+              </p>
+            </div>
+            <p class="vh">
+              Dealer final totals over 1,000 simulated hands: seventeen 11%,
+              eighteen 11%, nineteen 11%, twenty 33%, twenty-one 12%, bust 22%.
+            </p>
+            <div class="hist" aria-hidden="true">
               <div class="hist-row">
                 <span class="hist-label">17</span>
                 <span class="hist-track"><i style="width: 33%"></i></span>
@@ -1130,11 +1316,6 @@
                 <span class="hist-value">22%</span>
               </div>
             </div>
-            <p class="note">
-              This is why the hand was already bad before you touched it. A
-              dealer showing a ten reaches twenty about a third of the time and
-              busts only about one time in five.
-            </p>
           </div>
 
           <div>
@@ -1148,13 +1329,29 @@
             <p class="waffle-legend">
               <span><i style="background: var(--red-wash); outline: 1px solid var(--red)"></i>540 lost</span>
               <span><i style="background: color-mix(in srgb, var(--ink) 22%, transparent)"></i>380 won</span>
-              <span><i style="background: color-mix(in srgb, var(--rule) 55%, transparent)"></i>80 push</span>
-              <span><i style="background: var(--pin)"></i>you</span>
+              <span
+                ><i style="background: color-mix(in srgb, var(--rule) 55%, transparent)"></i>80
+                <button
+                  class="why why--inline"
+                  type="button"
+                  popovertarget="why-push"
+                  style="anchor-name: --a-push"
+                >
+                  push?
+                </button>
+              </span>
+              <span><i style="background: var(--red); outline: 2px solid var(--pin); outline-offset: 1px"></i>you</span>
+            </p>
+            <div id="why-push" popover style="position-anchor: --a-push">
+              <p class="pop-title">Push</p>
+              <p>Nobody won. Your bet comes back.</p>
+            </div>
+            <p class="lede">
+              You are the ringed mark. You lost, along with 539 others — and one
+              mark out of a thousand is not evidence about the decision that
+              produced it.
             </p>
             <p class="note">
-              Push means nobody won — your bet comes back. Your hand is the solid
-              mark. It is one of a thousand, it is not special, and it is not
-              evidence about the decision that produced it.
               <em>Figures illustrative in this styleframe; the shipped page
                 computes them from the seeded simulation.</em>
             </p>
@@ -1197,6 +1394,52 @@
                 <span class="remaining" style="flex: 0 0 86%"></span>
                 <span class="spent"></span>
               </div>
+            </div>
+
+            <div class="tray">
+              <span class="tray-stack" aria-hidden="true">
+                <i></i><i></i><i></i><i></i><i></i>
+              </span>
+              <span class="tray-count"><b>44</b> cards discarded</span>
+              <button
+                class="why why--inline"
+                type="button"
+                popovertarget="tray"
+                style="anchor-name: --a-tray"
+              >
+                See them
+              </button>
+            </div>
+            <div id="tray" popover style="position-anchor: --a-tray">
+              <p class="pop-title">Out of the shoe · 44 cards</p>
+              <div class="axis-row discard-axis">
+                <div class="draw">A</div>
+                <div class="draw">2</div>
+                <div class="draw">3</div>
+                <div class="draw">4</div>
+                <div class="draw">5</div>
+                <span class="split" aria-hidden="true"></span>
+                <div class="draw">6</div>
+                <div class="draw">7</div>
+                <div class="draw">8</div>
+                <div class="draw">9</div>
+                <div class="draw">10</div>
+                <div class="draw">J</div>
+                <div class="draw">Q</div>
+                <div class="draw">K</div>
+              </div>
+              <div class="axis-row count">
+                <span>3</span><span>4</span><span>2</span><span>5</span>
+                <span>6</span>
+                <span class="split" aria-hidden="true" style="background: none"></span>
+                <span>3</span><span>4</span><span>2</span><span>3</span>
+                <span>3</span><span>4</span><span>3</span><span>2</span>
+              </div>
+              <p style="margin-top: 0.7rem">
+                These cards are gone either way. Under finite shoe every number
+                above already counts them. Under independent draw they are lying
+                right there and the model does not care.
+              </p>
             </div>
           </div>
 
@@ -1250,13 +1493,10 @@
               </dl>
             </div>
 
-            <p class="note">
-              Six fives have gone — and the five is one of only five ranks that
-              save a sixteen. The hand you were dealt in Act 1 is quietly getting
-              worse, and nothing on the table told you. Switch to independent
-              draw and every bar returns to 24 and stays there, whatever has been
-              dealt. Only one of these two worlds makes remembering worth
-              anything.
+            <p class="lede">
+              Six fives are gone, and the five is one of only five ranks that
+              save a sixteen. Only one of these two worlds makes remembering
+              worth anything.
             </p>
           </div>
         </div>
@@ -1304,10 +1544,25 @@
               <span class="minus">−1</span>
             </div>
             <p class="note">
-              A four just left the shoe: <b>+1</b>. Aces sit at one end and tens
-              at the other, and both count −1 — the count does not care what a
-              card is worth, only whether it is high or low.
+              A four just left the shoe: <b>+1</b>.
+              <button
+                class="why"
+                type="button"
+                popovertarget="why-count"
+                style="anchor-name: --a-count"
+                aria-label="Why aces and tens both count minus one"
+              >
+                ?
+              </button>
             </p>
+            <div id="why-count" popover style="position-anchor: --a-count">
+              <p class="pop-title">Why both ends are −1</p>
+              <p>
+                Aces sit at one end of this axis and tens at the other, and both
+                count −1. The count does not care what a card is worth, only
+                whether it is high or low.
+              </p>
+            </div>
           </div>
 
           <div>
@@ -1317,10 +1572,10 @@
               <span class="remaining" style="flex: 0 0 68%"></span>
               <span class="spent"></span>
             </div>
-            <p class="note">
-              A count of +6 means the shoe still holds its tens and aces. You now
-              hold the best information a blackjack player can legitimately have.
-              It says nothing whatsoever about the next card.
+            <p class="lede">
+              +6 means the shoe still holds its tens and aces. You now hold the
+              best information a blackjack player can legitimately have, and it
+              says nothing whatsoever about the next card.
             </p>
           </div>
         </div>
@@ -1429,7 +1684,8 @@
       const cells = results.map((r, i) => {
         const s = document.createElement("span");
         s.className = "pending";
-        s.dataset.result = i === YOU ? "you" : r;
+        // fill = outcome, ring = identity
+        s.dataset.result = i === YOU ? `${r} you` : r;
         return s;
       });
       waffle.append(...cells);
