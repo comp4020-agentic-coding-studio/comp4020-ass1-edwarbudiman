@@ -102,6 +102,21 @@ export function goToAct(state: State, act: State["act"]): State {
   return { ...state, act };
 }
 
+/**
+ * Whether `next` just pushed the Running Count's high-water mark past where
+ * `previous` had it. This is the one signal `main.ts` (ticket 12) uses to
+ * offer Act 3 unprompted — never a fixed count. design.md and spec.md are
+ * explicit about why: Hi-Lo is a balanced count that returns toward zero as
+ * the Shoe empties, so a magic threshold like the old `CLOSING_COUNT` is not
+ * reliably reachable (measured over 300 Shoes, +6 arrives before 75%
+ * penetration in only 74% of them). "The highest it has been all session"
+ * always exists, so this is a pure comparison of two States rather than a
+ * comparison against any constant.
+ */
+export function reachedNewHighWaterMark(previous: State, next: State): boolean {
+  return next.runningCountHighWaterMark > previous.runningCountHighWaterMark;
+}
+
 /** The single control switching between Finite Shoe and Independent Draw. */
 export function setModel(state: State, model: DealModel): State {
   return { ...state, model };

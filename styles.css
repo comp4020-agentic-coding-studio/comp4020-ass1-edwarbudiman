@@ -1207,3 +1207,30 @@ p {
     animation: none !important;
   }
 }
+
+/* ---------- act 3's high-water-mark offer ----------
+   Built by main.ts (ticket 12), not by render(state): it has to persist
+   across whichever Act is currently mounted, so it lives outside #acts
+   rather than inside any one Act's markup. `.why`/`.why--inline` (already
+   styled above) cover the dismiss button and the "Go to Act 3" link — this
+   is the one new rule the banner itself needs. Setting `display` here would
+   otherwise beat the `hidden` attribute's UA-stylesheet rule, since an
+   author rule always wins regardless of source order — the `[hidden]`
+   override below is what keeps `hidden` actually hiding it. */
+.act3-offer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid var(--rule);
+  padding: 0.6rem 0.9rem;
+  margin: 1rem 0;
+}
+
+.act3-offer[hidden] {
+  display: none;
+}
+
+.act3-offer .offer-text {
+  margin: 0;
+  flex: 1;
+}

@@ -4,6 +4,7 @@
 // `src/explainer/` (state, transitions, render).
 
 import type { DealModel, Decision, Rank } from "./src/engine/index.ts";
+import { formatSignedCount } from "./src/explainer/format.ts";
 import { render } from "./src/explainer/render.ts";
 import { initialState, PLAYOUT_TRIALS, type State } from "./src/explainer/state.ts";
 import {
@@ -13,6 +14,7 @@ import {
   goToAct,
   hitFreePlay,
   nextHand,
+  reachedNewHighWaterMark,
   replayWithOtherDecision,
   selectRank,
   setModel,
@@ -84,8 +86,10 @@ function rerender(): void {
 function applyAction(name: string, arg: string | undefined): void {
   const action = actions[name];
   if (!action) return;
+  const previous = state;
   state = action(state, arg);
   rerender();
+  maybeOfferAct3(previous);
   maybeStartClimb();
 }
 
@@ -98,10 +102,54 @@ mount?.addEventListener("click", (event) => {
 });
 
 window.addEventListener("hashchange", () => {
+  const previous = state;
   state = goToAct(state, actFromHash(location.hash));
   rerender();
+  maybeOfferAct3(previous);
   maybeStartClimb();
 });
+
+// ---- Act 3's high-water-mark offer: shell chrome, outside the seam ----
+//
+// "The visitor arrives when they choose to, or when the page offers it at
+// the Running Count's high-water mark" (ticket 12, design.md's Flow). No
+// play happens in Act 3, so this only ever offers a link — it never
+// navigates on its own. It has to survive whichever Act's markup
+// `rerender()` just replaced, so it lives outside `#acts` entirely, exactly
+// like the theme toggle above. `reachedNewHighWaterMark` — a pure, tested
+// comparison of two States — is the entire trigger; there is no fixed
+// threshold anywhere in this file.
+const offerBanner = document.createElement("div");
+offerBanner.className = "act3-offer";
+offerBanner.hidden = true;
+offerBanner.setAttribute("role", "status");
+mount?.parentElement?.insertBefore(offerBanner, mount);
+
+offerBanner.addEventListener("click", (event) => {
+  const target = event.target;
+  if (target instanceof HTMLElement && target.closest(".offer-dismiss")) {
+    offerBanner.hidden = true;
+  }
+});
+
+function showAct3Offer(highWaterMark: number): void {
+  offerBanner.innerHTML =
+    `<p class="offer-text">The Running Count just reached a new high for this session — ` +
+    `<b>${formatSignedCount(highWaterMark)}</b>. Act 3 is ready whenever you are.</p>` +
+    `<a class="why why--inline" href="#act-3">Go to Act 3</a>` +
+    `<button class="why offer-dismiss" type="button" aria-label="Dismiss">×</button>`;
+  offerBanner.hidden = false;
+}
+
+function maybeOfferAct3(previous: State): void {
+  if (state.act === 3) {
+    offerBanner.hidden = true;
+    return;
+  }
+  if (reachedNewHighWaterMark(previous, state)) {
+    showAct3Offer(state.runningCountHighWaterMark);
+  }
+}
 
 // ---- Act 1 beat 4's Play-out counter: the shell drives the climb ----
 //
