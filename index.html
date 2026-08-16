@@ -54,6 +54,29 @@
         </p>
       </noscript>
 
+      <!-- Act 3 is offered at the Running Count's high-water mark, never at a
+           fixed threshold (Hi-Lo is balanced, so a fixed target is not
+           reliably reachable — see CONTEXT.md). The copy lives here as real
+           markup rather than being written by the shell: the shell's job is to
+           unhide it and fill in the number, not to author page content. It
+           sits outside #acts so it survives the re-render of whichever Act is
+           mounted, and it only ever offers a link — it never navigates. -->
+      <div class="act3-offer" id="act3-offer" role="status" hidden>
+        <p class="offer-text">
+          The Running Count just reached a new high for this session —
+          <b id="act3-offer-count">+0</b>. Act 3 is ready whenever you are.
+        </p>
+        <a class="why why--inline" href="#act-3">Go to Act 3</a>
+        <button
+          class="why offer-dismiss"
+          type="button"
+          id="act3-offer-dismiss"
+          aria-label="Dismiss this offer"
+        >
+          ×
+        </button>
+      </div>
+
       <main id="acts"></main>
 
       <!-- The reference drawer: same on every Act, needs no State, so it is

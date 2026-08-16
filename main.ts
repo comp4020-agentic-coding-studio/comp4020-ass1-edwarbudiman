@@ -119,35 +119,28 @@ window.addEventListener("hashchange", () => {
 // like the theme toggle above. `reachedNewHighWaterMark` — a pure, tested
 // comparison of two States — is the entire trigger; there is no fixed
 // threshold anywhere in this file.
-const offerBanner = document.createElement("div");
-offerBanner.className = "act3-offer";
-offerBanner.hidden = true;
-offerBanner.setAttribute("role", "status");
-mount?.parentElement?.insertBefore(offerBanner, mount);
+//
+// The banner's copy is static markup in `index.html`, not written here. The
+// shell unhides it and fills in one number; authoring page content in the
+// shell would put the same prose in a third place and leave it untested.
+const offerBanner = document.getElementById("act3-offer");
+const offerCount = document.getElementById("act3-offer-count");
 
-offerBanner.addEventListener("click", (event) => {
-  const target = event.target;
-  if (target instanceof HTMLElement && target.closest(".offer-dismiss")) {
-    offerBanner.hidden = true;
-  }
+document.getElementById("act3-offer-dismiss")?.addEventListener("click", () => {
+  if (offerBanner) offerBanner.hidden = true;
 });
 
-function showAct3Offer(highWaterMark: number): void {
-  offerBanner.innerHTML =
-    `<p class="offer-text">The Running Count just reached a new high for this session — ` +
-    `<b>${formatSignedCount(highWaterMark)}</b>. Act 3 is ready whenever you are.</p>` +
-    `<a class="why why--inline" href="#act-3">Go to Act 3</a>` +
-    `<button class="why offer-dismiss" type="button" aria-label="Dismiss">×</button>`;
-  offerBanner.hidden = false;
-}
-
 function maybeOfferAct3(previous: State): void {
+  if (!offerBanner) return;
   if (state.act === 3) {
     offerBanner.hidden = true;
     return;
   }
   if (reachedNewHighWaterMark(previous, state)) {
-    showAct3Offer(state.runningCountHighWaterMark);
+    if (offerCount) {
+      offerCount.textContent = formatSignedCount(state.runningCountHighWaterMark);
+    }
+    offerBanner.hidden = false;
   }
 }
 

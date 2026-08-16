@@ -1,6 +1,6 @@
 # 12 — Act 3, the conclusion
 
-Status: ready-for-agent
+Status: done
 Blocked by: 11
 
 ## Why
