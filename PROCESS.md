@@ -1,76 +1,31 @@
 # Process overview
 
-A reading-guide to how this repo came together — a map to the process, not an
-essay about it. Follow the citations for the evidence.
-
 ## What I built
 
-The Blackjack Probability Explainer: a single-page interactive site where
-Blackjack is the mechanic and decision-making under uncertainty is the subject.
-Three Acts carry one visitor's hand from a single honest deal, through the
-mechanics of the shoe, to the strongest form of the thesis — even a maximised
-information state (a tracked count) does not buy a good outcome on one hand.
-Draw probabilities are exact arithmetic over the shoe; Play-out distributions
-are seeded Monte Carlo, so the counter animation on screen is the simulation
-actually running, not a fake count-up. The last line on the page is the point
-of the whole thing: a good decision is not a promise of a good outcome.
+The Blackjack Probability Explainer is a one-page interactive website. Blackjack is the game. The subject is decision-making under uncertainty.
+The website has three acts. The acts follow one hand for one visitor.
+
+1. Act One shows a static introduction of blackjack and the probability calculation.
+2. Act Two shows we let the visitor play the hand, and showing the draw probabilities.
+3. Act Three shows the conclusion: even a maximised calculation state (a tracked count) does not guarantee a good outcome on one hand.
+
+The website uses a seeded Monte Carlo method to calculate play-out distributions. The counter on the screen shows this simulation as it runs. The counter does not show a fake count.
+The last line on the page states the main point: a good decision does not guarantee a good outcome.
 
 ## The moments that mattered
 
-1. **Two factual errors were caught before any code existed, by grilling the
-   draft rather than trusting it.** `brief-idea/blackjack/idea.md` marked a
-   hand of 16 as busting on a 5 — it doesn't, 16 + 5 = 21 — and called for
-   scripting a losing play-through into the closing beat. Both would have
-   shipped a probability explainer that lied about probability, and the second
-   one contradicts its own thesis: faking a result to make a point about
-   results not mattering. Fixed by writing `CONTEXT.md`'s Draw/Play-out
-   distinction and `docs/adr/0001`, which requires the closing hand be dealt
-   honestly and only ever *labelled* as scripted
-   ([`e863878`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-edwarbudiman/commit/e863878)).
+1. **Brainstorming.** This step decided the direction of the project for a long time. I had two main ideas. I chose the blackjack idea because it does not need heavy assets. (I keep a log of another session of brainstorming in [meta/chatgpt-discuss/dialogue.md](meta/chatgpt-discuss/dialogue.md).) At this stage, I moved the `claude.md` and `process.md` templates out of the way. This step stops them from changing the initial prompt. Then I ran the `/grill-me` skill to shape the idea and the `claude.md` file. This step also makes sure the planning stage does not miss anything. The `/grill-me` skill asks me questions. These questions help the agent understand my idea. The skill then writes the `claude.md` and `context.md` files based on my answers.
+   ([`0d7329b...87f98ee`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-edwarbudiman/compare/0d7329b...87f98ee))
 
-2. **`docs/adr/0003` recorded a wrong reason, and the fix was to correct the
-   record rather than quietly change the decision.** It had ruled out floating
-   popovers on the grounds that the harness "forbids branching behaviour on
-   viewport" — but that rule is about TypeScript reading width, not CSS anchor
-   positioning, which a native `popover` with CSS anchor positioning does not
-   do. I knew it was wrong because a popover a keyboard user or a 390px
-   viewport actually needs (the discard tray, "why this matters") had been
-   designed away for a reason that didn't hold up under rereading the actual
-   rule. The ADR itself was edited to show the earlier reasoning and why it
-   failed, so the history stays honest instead of erasing the mistake
-   ([`a5c6177...45cc79d`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-edwarbudiman/compare/a5c6177...45cc79d)).
+2. **Specification and tickets.** After a long `/grill-me` session, I ran the `/to-spec` and `/to-ticket` skills. These skills use the `/grill-me` output to create structured tickets. The output goes into a `.scratch` folder. This folder contains:
+   - **issues**: the main tickets. Each ticket describes a task needed to finish the project.
+   - **design.md**: the design of the project. This file describes the style and the flow of the project.
+   - **spec.md**: the specification of the project. This file is the test harness for the project. It also contains the user stories.
 
-3. **Building `src/engine/` immediately contradicted three things drawn by
-   hand before any arithmetic backed them.** The honest Act 1 deal gives the
-   visitor a 4, not a bust — a win, not a loss, which is what made ADR 0001's
-   "answer whichever result turns up" a real constraint instead of a
-   hypothetical. Real settlement over the simulated shoes came back
-   757 lost / 57 push / 186 won, nothing like the invented 540/380/80 the
-   mock had used. And the styleframe's closing count of +6 turned out not to
-   survive Hi-Lo's balance — measured over 300 shoes it arrives before 75%
-   penetration only 74% of the time — so the design changed to the count's
-   high-water mark, which always exists. I knew these were right because the
-   engine has its own test suite (`spec/engine.test.ts`, 27 tests, including
-   regressions for both known arithmetic errors) and `scripts/figures.ts`
-   computes every number the proof sheet shows, so no figure on the page is
-   typed by hand
-   ([`d948241`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-edwarbudiman/commit/d948241)).
+   After this, I asked the LLM to create a wireframe. I checked the design, the spec, and the flow. I adjusted them when they did not match my expectations. This stage produced `frames.html` and `styleframe.html`. I used these two files to guide the rest of the development. This stage also generated an issues folder for every ticket. I used these tickets to develop the project.
+   ([`516d69d...432708a`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-edwarbudiman/compare/516d69d...432708a))
 
-4. **The evidence gate itself was found broken in session one and left
-   unfixed through session two, on purpose, until it could go first.**
-   `pnpm check:evidence` failed from the start — `PROCESS.md` and `CLAUDE.md`
-   had been moved to `meta/` in the initial commit
-   ([`0d7329b`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-edwarbudiman/commit/0d7329b)),
-   which meant the harness that's supposed to steer the agent wasn't in the
-   root where either the agent or the checker would find it. Rather than fix
-   it immediately and lose the thread of the design work, I ticketed it as
-   issue 01 with the deploy pulled forward to issue 08, so a finished
-   prototype is never blocked at the deadline by process evidence that could
-   have been fixed in minutes at any point along the way
-   ([`432708a`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-edwarbudiman/commit/432708a)).
+3. **Automatic development.** At this stage, the agents ran on their own for the rest of the development. The tickets were ready. The design spec was ready. The spec was ready. I let the agents run and implement everything with sub-agents. I chose the `/grill-me` approach for this reason: when all the pieces are ready, the agent can orchestrate and handle the development on its own. I only had to wait until all tests passed.
+   ([`9b01e1a...baaa9f1`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-edwarbudiman/compare/9b01e1a...baaa9f1))
 
-## Before you ship
-
-The full session-by-session account, dead ends included, is in
-`session-recap.md` at the repo root — this file is a curated subset of it, not
-a replacement.
+During stage two, the agents were still deciding the design. At this point, I gave input and checked the work by hand, in cycles, until I was satisfied with the design and spec. Each time the agents finished a wireframe, I checked the design. If it did not match my expectations, I gave feedback. I then decided whether to run `/grill-me` again, and surprisingly, it works just like that, it still remember the previous context of `/grill-me` and just continue updating information based on feedback.

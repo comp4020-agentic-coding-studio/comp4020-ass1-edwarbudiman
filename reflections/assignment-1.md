@@ -1,29 +1,10 @@
 # Assignment 1 reflection
 
-**The breakthrough.** I expected the hard part of this assignment to be the
-interaction design — the waffle chart, the resize behaviour, the seeded
-Monte Carlo. It wasn't. The breakthrough was finding out, before writing a
-line of code, that my own draft brief contained a wrong number (a hand of 16
-does not bust on a 5) and a self-contradicting idea (scripting a loss to
-prove that outcomes don't validate decisions, in an explainer whose entire
-point is that outcomes don't validate decisions). Both survived several
-readings by me. They only surfaced when I made the agent grill the draft
-against the published brief and the glossary terms, sentence by sentence,
-instead of accepting my summary of what I'd already decided to build. The
-same pattern repeated later at a different layer: an ADR recorded a real
-rule ("no viewport branching in TypeScript") as a broader one than it
-actually was, and a hand-drawn mock's settlement numbers and closing count
-didn't survive contact with the engine that computed them for real. The
-lesson generalises past this project: a draft, a design doc, and a styleframe
-are all claims, and none of them are validated until something — a second
-reading, a test, a running engine — is allowed to disagree with them.
+I finished the assignment. Now I want to reflect on the process. This is the first time I built something with the grill-me approach. I tried this approach before, but I never finished the session. In the past, I let the agent complete the implementation without a deep review. I did not check what went wrong. I did not direct the agent well.
 
-**What this changed about the developer I want to be.** I used to treat
-"process" as overhead that happens after the real work — write the code,
-then write up what I did. Watching `pnpm check:evidence` block a deploy
-because `PROCESS.md` and `CLAUDE.md` had been moved out of the root changed
-that: the harness isn't a report on the work, it's part of the work, and a
-broken sensor is exactly as blocking as a broken build. I want to keep
-writing the rule down the first time it's needed rather than re-explaining it
-to the next session, and keep treating "the agent got this wrong" as a
-prompt to fix the harness, not just the output.
+This time, I completed the full process. I tried my best to guide the agent with my expectations. But this approach is expensive. The total cost reached $100 for a project that I do not think is complex. I believe the grill-me approach works well for complex projects. It helps you understand the specification better. But I think there is a better way to handle the implementation stage. The discussion of the spec and the design cost around $40. The implementation stage then raised the total cost to $100.
+
+I believe I can do better in the future. I can use grill-me only to get a better perspective on the specification. For the design stage, I think there is a better way to work, because this stage caused most of the cost. I also let the LLM use the strongest model (Opus) at times when it was not necessary, such as for implementation and testing. The grill-me approach tries hard to check and test every ticket. But testing should target only the most important parts of the project.
+
+**What this changed about the developer I want to be.**
+I found a good way to start a project. A good grill-me session gives me insight into things I did not think about at first. But the process is still complex. I believe I can make it more efficient.
