@@ -1,6 +1,6 @@
 # 15 — Self-host the fonts
 
-Status: ready-for-agent
+Status: wontfix
 Blocked by: 08
 
 ## Why
@@ -21,3 +21,18 @@ Budget roughly 60–90KB total. Keep the fallback stacks already in the tokens.
 
 The deployed page renders correct type with the network blocked to
 `fonts.googleapis.com` and `fonts.gstatic.com`.
+
+## Resolution — not done, by decision
+
+Closed `wontfix`. Asked directly, with this ticket's objection stated, and the
+CDN `<link>` was chosen over self-hosting. `index.html` now loads the three
+faces from `fonts.googleapis.com`, with a comment at the tag saying it is a
+decision rather than the default.
+
+What that costs, recorded so it is not rediscovered as a bug: the "Done when"
+above is **not** met. With the network blocked to Google the page falls back to
+Helvetica Neue / Georgia / ui-monospace rather than the intended type, and the
+marked page depends on a third party being reachable. The fallback stacks in
+the tokens are what keeps that a degradation rather than a broken page.
+
+Reopen by fetching subset `.woff2` files and dropping the two `<link>`s.
