@@ -1,6 +1,6 @@
 # 02 — The static shell
 
-Status: ready-for-agent
+Status: done
 Blocked by: 01
 
 ## Why

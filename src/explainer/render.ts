@@ -29,12 +29,30 @@ function section(id: string, inner: string): string {
   return `<section class="plate" id="${id}" tabindex="-1">${inner}</section>`;
 }
 
-function placeholder(id: string, plateLabel: string, heading: string): string {
-  return section(
-    id,
-    `<p class="plate-label">${escapeHtml(plateLabel)}</p>` +
-      `<h2>${escapeHtml(heading)}</h2>`,
+/**
+ * Every action button carries a stable id, and that is load-bearing rather
+ * than decorative: the shell restores focus after a re-render by looking the
+ * previously-focused id back up. A button with no id can never be found again,
+ * so focus would always fall back to the whole section — which is the right
+ * behaviour only when the control genuinely went away. Later tickets: keep
+ * using this helper rather than hand-writing `<button>`.
+ */
+export function actionButton(
+  action: string,
+  label: string,
+  options: { arg?: string; className?: string } = {},
+): string {
+  const { arg, className = "btn" } = options;
+  const id = arg ? `do-${action}-${arg}` : `do-${action}`;
+  const argAttr = arg ? ` data-arg="${escapeHtml(arg)}"` : "";
+  return (
+    `<button class="${escapeHtml(className)}" type="button" id="${escapeHtml(id)}"` +
+    ` data-action="${escapeHtml(action)}"${argAttr}>${escapeHtml(label)}</button>`
   );
+}
+
+function placeholder(id: string, heading: string): string {
+  return section(id, `<h2>${escapeHtml(heading)}</h2>`);
 }
 
 /**
@@ -65,36 +83,31 @@ function renderAct1Beat1(state: State): string {
 
   return section(
     "act-1",
-    `<p class="plate-label">Act 1 · beat 1 — how blackjack works</p>` +
-      `<p class="eyebrow">Act 1</p>` +
+    `<p class="eyebrow">Act 1</p>` +
       `<h2>You have sixteen</h2>` +
       `<p class="lede">The dealer is showing a ten. Before you read another ` +
       `word: hit, or stand?</p>` +
       table +
+      // Identical classes on both, deliberately: the page must not nudge an
+      // intuition it is about to test.
       `<div class="decision">` +
-      `<button class="btn" type="button" data-action="decide" data-arg="hit">Hit</button>` +
-      `<button class="btn" type="button" data-action="decide" data-arg="stand">Stand</button>` +
+      actionButton("decide", "Hit", { arg: "hit" }) +
+      actionButton("decide", "Stand", { arg: "stand" }) +
       `</div>`,
   );
 }
 
-const ACT1_BEAT_LABEL: Record<2 | 3 | 4, string> = {
-  2: "Act 1 · beat 2 — every card that could come next",
-  3: "Act 1 · beat 3 — your hand, dealt honestly",
-  4: "Act 1 · beat 4 — the thousand",
-};
-
 function renderAct1(state: State): string {
   if (state.beat === 1) return renderAct1Beat1(state);
-  return placeholder("act-1", ACT1_BEAT_LABEL[state.beat], ACT_HEADING[1]);
+  return placeholder("act-1", ACT_HEADING[1]);
 }
 
 function renderAct2(): string {
-  return placeholder("act-2", "Act 2 · locked opening, then free play", ACT_HEADING[2]);
+  return placeholder("act-2", ACT_HEADING[2]);
 }
 
 function renderAct3(): string {
-  return placeholder("act-3", "Act 3 · the conclusion", ACT_HEADING[3]);
+  return placeholder("act-3", ACT_HEADING[3]);
 }
 
 export function render(state: State): string {

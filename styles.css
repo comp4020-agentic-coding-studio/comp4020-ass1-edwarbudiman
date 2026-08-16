@@ -169,6 +169,19 @@ nav[aria-label="Acts"] a[aria-current="step"] {
   border-bottom: 1px solid var(--rule);
 }
 
+/* One Act is on screen at a time, so this is rhythm, not separation. The
+   styleframe's `.plate` drew a rule above every beat because a proof sheet
+   stacks them all; here there is nothing above to divide from. The section
+   takes focus after a re-render, and never shows a focus ring for it — the
+   visitor did not tab there, the render sent them there. */
+.plate {
+  padding-block-start: 1.75rem;
+}
+
+.plate:focus {
+  outline: none;
+}
+
 /* ---------- headings and prose ---------- */
 
 .eyebrow {
@@ -312,7 +325,6 @@ p {
 /* BEM modifier classes below (--back, --bust) are names locked by the
    design system (design.md) and used verbatim by the markup other
    tickets emit; renaming to satisfy kebab-case would break the page. */
-/* stylelint-disable selector-class-pattern */
 
 /* guilloché back */
 .card--back {
@@ -347,7 +359,6 @@ p {
   color: var(--red);
 }
 
-/* stylelint-enable selector-class-pattern */
 
 .total {
   font-family: var(--face-data);
@@ -401,7 +412,6 @@ p {
   color: var(--stock);
 }
 
-/* stylelint-disable-next-line selector-class-pattern -- locked BEM name, see design.md */
 .btn--advance {
   width: 100%;
   margin-top: 1.5rem;
@@ -433,7 +443,6 @@ p {
   cursor: pointer;
 }
 
-/* stylelint-disable-next-line selector-class-pattern -- locked BEM name, see design.md */
 .draw--bust {
   border-color: var(--red);
   background: var(--red-wash);
@@ -500,10 +509,13 @@ p {
   min-height: 2px;
 }
 
-/* stylelint-disable-next-line selector-class-pattern -- locked BEM name, see design.md */
+/* The thinnest rank, picked out. NOT in red: a depleted rank is not a bust and
+   not a loss (ADR 0003), and at the shipped figures the thinnest rank is the
+   3s — low cards leaving is the thing that RAISES the count in the visitor's
+   favour. Red here would flag the good news as danger. Emphasis is weight. */
 .bar--low {
-  background: var(--red-wash);
-  border-top-color: var(--red);
+  background: color-mix(in srgb, var(--ink) 30%, transparent);
+  border-top-width: 3px;
 }
 
 /* Act 3: Hi-Lo values, same columns */
@@ -523,8 +535,13 @@ p {
   color: var(--ink);
 }
 
+/* Hi-Lo −1 is tens and aces, and a shoe rich in tens and aces FAVOURS the
+   visitor. The styleframe printed these red; that is the one thing --red is
+   not allowed to mean (ADR 0003), and here it would also invert the argument
+   at the exact moment the page teaches the count. The sign glyph carries the
+   distinction; the tone only separates the two ends of the axis. */
 .axis-values .minus {
-  color: var(--red);
+  color: var(--ink-dim);
 }
 
 .axis-values .just-left {
@@ -842,8 +859,13 @@ p {
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--red);
-  border: 1.5px solid var(--red);
+
+  /* "Chosen, not dealt" is a statement about provenance, not about outcome.
+     The styleframe stamped it red; red is reserved for bust and loss (ADR
+     0003), and spending it here would blunt it three paragraphs before the
+     Scripted Hand needs it. The box and the caps carry the emphasis. */
+  color: var(--ink);
+  border: 1.5px solid var(--ink);
   padding: 0.25rem 0.5rem;
   margin-bottom: 0.9rem;
 }
@@ -892,7 +914,6 @@ p {
   border-color: var(--ink);
 }
 
-/* stylelint-disable-next-line selector-class-pattern -- locked BEM name, see design.md */
 .why--inline {
   border-radius: 2px;
   width: auto;
@@ -1097,7 +1118,6 @@ p {
    .hist-row--bust) purely to keep every selector ending in a bare "i"
    in ascending-specificity order for stylelint's no-descending-specificity —
    it still applies only within .hist-row--bust, unrelated to the tray. */
-/* stylelint-disable selector-class-pattern -- locked BEM name, see design.md */
 .hist-row--bust .hist-label,
 .hist-row--bust .hist-value {
   color: var(--red);
@@ -1111,7 +1131,6 @@ p {
   background: var(--red);
 }
 
-/* stylelint-enable selector-class-pattern */
 
 .tray-count {
   font-family: var(--face-data);
@@ -1176,7 +1195,6 @@ p {
     max-width: 20ch;
   }
 
-  /* stylelint-disable-next-line selector-class-pattern -- locked BEM name, see design.md */
   .btn--advance {
     width: auto;
     min-width: 20rem;

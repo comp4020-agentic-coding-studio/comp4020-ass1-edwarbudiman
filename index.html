@@ -7,30 +7,45 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <header>
-      <h1>Blackjack Probability Explainer</h1>
-      <p>
-        A good decision is not a promise of a good outcome. Blackjack is the
-        mechanic; this page is an argument.
-      </p>
-      <p>
-        Table rules: six-deck Shoe, dealer stands on all 17s, Hit and Stand
-        only — no Double, no Split.
-      </p>
+    <div class="page">
+      <!-- Everything down to #acts is real markup: spec/invariants.test.ts
+           parses the built HTML without executing scripts, so a shell rendered
+           by JavaScript would be invisible to it. -->
+      <header class="masthead">
+        <h1>Blackjack Probability Explainer</h1>
+        <button class="theme-toggle" type="button" id="theme">Night</button>
+      </header>
+
       <nav aria-label="Acts">
-        <ul>
-          <li><a href="#act-1">Act 1 — How blackjack works</a></li>
-          <li><a href="#act-2">Act 2 — Two kinds of blackjack</a></li>
-          <li><a href="#act-3">Act 3 — The conclusion</a></li>
-        </ul>
+        <ol>
+          <li><a href="#act-1">1 · How blackjack works</a></li>
+          <li><a href="#act-2">2 · Two kinds of blackjack</a></li>
+          <li><a href="#act-3">3 · The conclusion</a></li>
+        </ol>
       </nav>
-    </header>
-    <noscript>
-      <p>The Explainer needs JavaScript to run. Please enable it to continue.</p>
-    </noscript>
-    <main>
-      <div id="acts"></div>
-    </main>
+
+      <p class="rules">
+        Six decks · Dealer stands on all 17s · Hit and stand only · No double, no
+        split
+      </p>
+
+      <p class="lede">
+        You have sixteen and the dealer is showing a ten. Every choice from here
+        is a choice between two bad options — and this page is about how you tell
+        which one is better.
+      </p>
+
+      <noscript>
+        <p class="note">
+          The Explainer needs JavaScript: it deals the cards, runs the
+          simulations and computes every probability on the page in your
+          browser. With scripts disabled there is nothing to see beyond this
+          notice.
+        </p>
+      </noscript>
+
+      <main id="acts"></main>
+    </div>
     <script type="module" src="./main.ts"></script>
   </body>
 </html>

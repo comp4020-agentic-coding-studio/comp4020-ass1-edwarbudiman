@@ -1,6 +1,6 @@
 # 01 — Clear the evidence gate
 
-Status: ready-for-agent
+Status: done
 Blocked by: —
 
 ## Why first
