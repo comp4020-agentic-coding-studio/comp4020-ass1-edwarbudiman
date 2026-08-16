@@ -1,6 +1,6 @@
 # 13 — Keyboard, focus and screen reader pass
 
-Status: ready-for-agent
+Status: done
 Blocked by: 12
 
 ## Why

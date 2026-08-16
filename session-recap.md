@@ -78,3 +78,73 @@ feature work, because it blocks the deploy. Then the seam and the math, then Act
 
 **Commits.** `e863878` — the whole design landed as one commit, deliberately
 before any implementation, so the history shows the thinking happened first.
+
+## Session 3 — build it, ship it
+
+**What I was trying to do.** Work the fifteen tickets to done, with smaller
+models writing the code and me reviewing every diff rather than typing any of
+it. Deploy as soon as Act 1 stood up, not at the end.
+
+**How it went.** Fourteen tickets landed, one closed `wontfix` by decision. The
+Explainer is live and all three Acts work. Roughly: evidence gate and shell
+first, then the seam, then the visual system, then Act 1 in two passes, deploy,
+then Act 2's locked opening and free play, Act 3, and the accessibility pass.
+
+**What went wrong, and it was almost always the same thing.** Parallel agents
+each did their own ticket correctly and left the seams between them broken:
+
+- The shell agent produced structurally correct markup carrying none of the
+  design's class names, so the ported stylesheet slid straight off it.
+- The stylesheet agent correctly dropped `.plate-label` as proof-sheet
+  scaffolding; two later agents re-emitted it from the styleframe, and it would
+  have shipped as unstyled body text. Fixed twice.
+- Nothing set `aria-current`, though the stylesheet had always styled it.
+- The Act 3 offer banner was assembled with `innerHTML` in `main.ts`, putting
+  page prose in a third place and outside every test.
+
+The lesson for the harness: **an agent given one ticket optimises for that
+ticket.** The integration between tickets is not anyone's ticket, and it has to
+be someone's job. It was mine, and it was most of the work.
+
+**The one factual error I caught before it propagated.** My own brief to the
+seam agent said the dealer holds "upcard + hole card". The engine holds only
+the upcard — the hole card is dealt honestly at play-out, which is the whole of
+ADR 0001. Left alone it would have removed four cards from the opening Shoe
+instead of three and shifted every probability off the shipped figures. Caught
+by reading `scripts/figures.ts` rather than trusting my own instruction, and
+corrected mid-flight with a check the agent could verify against: an Ace must
+come out at exactly 24/309.
+
+**Three violations of ADR 0003, all inherited faithfully.** `--red` means bust
+or loss "and nothing else, anywhere, ever" — and the styleframe breaks its own
+ADR three times: Hi-Lo `−1` values, the thinnest composition bar, and the
+"Chosen, not dealt" stamp. A faithful port inherited all three. Two of them
+actively inverted the argument: `−1` is tens and aces, and the thinnest rank at
+the shipped figures is the 3s — both of which *favour* the visitor. The
+styleframe is a proof sheet; where it and the ADR disagree, the ADR wins.
+
+**What changed in the harness.**
+- `.stylelintrc.json` gained a `selector-class-pattern` override permitting the
+  design's BEM `--modifier` names, replacing seven scattered
+  `stylelint-disable` comments. The config says it once instead of the
+  stylesheet apologising seven times.
+- `actionButton()` in `render.ts` now mints a stable id per action. Focus
+  restoration looks controls up by id, so a button without one can never be
+  found again — the shell's "restore to the control just activated" branch was
+  unreachable dead code until this existed.
+- `render.ts` split into `acts/act-1.ts`, `act-2.ts`, `act-3.ts` so Acts could
+  be built in parallel without colliding.
+- `src/engine/simulate.ts` gained `simulateTrials`, and `simulate` now reduces
+  its output rather than sampling a second time — one loop, so the aggregate
+  and the per-trial list can never drift. Verified by regenerating
+  `figures.json` and diffing: byte-identical, so the RNG order is unchanged.
+
+**An attempt discarded.** Ticket 15 (self-host the fonts) was closed `wontfix`
+after asking: the CDN `<link>` was chosen instead. The cost is written into the
+ticket rather than left to be rediscovered — with Google blocked the page falls
+back to Helvetica Neue / Georgia / ui-monospace, and the marked page now
+depends on a third party being reachable.
+
+**Commits.** `d6215f8...` through the accessibility pass — 178 tests across 12
+files, green, deployed at
+https://comp4020-agentic-coding-studio.github.io/comp4020-ass1-edwarbudiman/
