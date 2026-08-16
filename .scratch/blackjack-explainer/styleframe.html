@@ -1246,23 +1246,9 @@
         split
       </p>
 
-      <!-- Visible from Act 1 onward. The number is always here; the rule is on
-           demand. Act 1 never stops to teach it. -->
-      <p class="readout">
-        <span>Running count</span>
-        <b id="count-now">0</b>
-        <button
-          class="why"
-          type="button"
-          popovertarget="how-count"
-          aria-label="How the running count works"
-        >
-          ?
-        </button>
-        <span class="spacer"></span>
-        <span>Shoe <b id="shoe-now">312</b></span>
-      </p>
-
+      <!-- The count is introduced at the END of Act 1, once the visitor has
+           made a decision without it, and is persistent from there. The panel
+           lives here because a popover renders in the top layer regardless. -->
       <div id="how-count" popover class="panel">
         <div class="panel-head">
           <p class="pop-title">How the running count works</p>
@@ -1397,7 +1383,27 @@
 
         <div class="spread">
           <div>
-            <h3>
+            <h3>What the dealer had</h3>
+            <div class="table" style="padding: 0 0 1rem">
+              <div class="seat">
+                <div class="hand" id="dealer-hand"></div>
+                <p class="total" id="dealer-total"></p>
+              </div>
+            </div>
+            <p class="note" style="margin-top: 0" id="dealer-reveal"></p>
+
+            <dl class="odds">
+              <div>
+                <dt>Your hit survived</dt>
+                <dd id="beat4-survive"></dd>
+              </div>
+              <div class="miss">
+                <dt>It could have busted</dt>
+                <dd id="beat4-bust"></dd>
+              </div>
+            </dl>
+
+            <h3 style="margin-top: 2rem">
               What the dealer made · 1,000 hands
               <button
                 class="why"
@@ -1451,6 +1457,31 @@
             </div>
             <p class="lede" id="waffle-copy"></p>
           </div>
+        </div>
+
+        <!-- The count arrives here, at the end of Act 1: after a decision has
+             been made without it, and with its rule one button away. -->
+        <div class="locked" style="margin-top: 2.5rem">
+          <p class="locked-flag">New · from here on</p>
+          <p class="readout" style="border: 0; padding-top: 0">
+            <span>Running count</span>
+            <b id="count-now">0</b>
+            <button
+              class="why"
+              type="button"
+              popovertarget="how-count"
+              aria-label="How the running count works"
+            >
+              ?
+            </button>
+            <span class="spacer"></span>
+            <span>Shoe <b id="shoe-now">312</b></span>
+          </p>
+          <p class="note" style="margin-top: 0.75rem">
+            Every card that has left the shoe moved this number. It describes
+            what is still in there — never what comes next. It stays on screen
+            for the rest of the page, and it is about to start mattering.
+          </p>
         </div>
 
         <button class="btn btn--advance" type="button">
@@ -1557,6 +1588,21 @@
                 <dd id="odds-bust"></dd>
               </div>
             </dl>
+
+            <p class="readout">
+              <span>Running count</span>
+              <b id="count-now-2">0</b>
+              <button
+                class="why"
+                type="button"
+                popovertarget="how-count"
+                aria-label="How the running count works"
+              >
+                ?
+              </button>
+              <span class="spacer"></span>
+              <span>Shoe <b id="shoe-now-2">312</b></span>
+            </p>
 
             <div class="slot" id="slot"></div>
 
@@ -1936,14 +1982,39 @@
         }. Only one of these two worlds makes remembering worth anything.`,
       );
 
-      // ---- next-draw odds for the hand actually held ------------------------
-      set("odds-survive", `${act1.survivePercent}%`);
-      set("odds-bust", `${act1.bustPercent}%`);
+      // ---- next-draw odds, in beat 4 and again in Act 2 --------------------
+      for (const id of ["odds-survive", "beat4-survive"]) {
+        set(id, `${act1.survivePercent}%`);
+      }
+      for (const id of ["odds-bust", "beat4-bust"]) {
+        set(id, `${act1.bustPercent}%`);
+      }
 
-      // ---- the count readout and its rule panel ----------------------------
+      // ---- beat 4: the dealer's hand, hole card finally turned over --------
+      el("dealer-hand").replaceChildren(
+        ...mine.dealerRanks.map((rank, i) => {
+          const card = make("div", "card");
+          card.append(
+            make("span", "suit", SUITS[i % SUITS.length]),
+            make("span", "rank", rank),
+          );
+          return card;
+        }),
+      );
+      el("dealer-total").replaceChildren(
+        document.createTextNode("Dealer"),
+        make("b", null, String(mine.dealerTotal)),
+      );
+      if (mine.dealerBusted) el("dealer-total").append(make("span", "busted", "Bust"));
+      set(
+        "dealer-reveal",
+        `The hole card was ${mine.dealerRanks[1]}. Beat one only ever showed you the ${mine.dealerRanks[0]}, which is all you get to decide on at a real table.`,
+      );
+
+      // ---- the count readouts and the rule panel ---------------------------
       const signed = (value) => (value > 0 ? `+${value}` : String(value));
-      set("count-now", signed(act3.count));
-      set("shoe-now", n(act3.remaining));
+      for (const id of ["count-now", "count-now-2"]) set(id, signed(act3.count));
+      for (const id of ["shoe-now", "shoe-now-2"]) set(id, n(act3.remaining));
       onAxis(
         el("how-count-strip"),
         act2.composition.map((rank) => make("div", "draw", rank.rank)),

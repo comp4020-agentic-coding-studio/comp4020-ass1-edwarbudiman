@@ -101,10 +101,16 @@ click/tap only, no hover.
 Where anchor positioning is unsupported a note falls back to the centred
 default, which is acceptable.
 
-**Count readout.** The Running Count is a persistent number — `+2`, `−1` — from
-Act 1 onward, with a `?` opening the Hi-Lo rule as the annotated thirteen-rank
-axis. The number is always visible; the rule is on demand. Act 1 never stops to
-teach it.
+**Count readout.** A persistent number — `+11`, `−1` — with a `?` opening the
+Hi-Lo rule as the annotated thirteen-rank axis in the large panel. It is
+**introduced at the end of Act 1**, in beat 4, once the visitor has already
+decided without it, and stays on screen from there: beat 4, Act 2 beside the
+odds, and Act 3. The number is always visible; the rule is on demand. Act 1's
+opening never stops to teach it.
+
+**Odds pair.** Two cells, survive against bust, the second in red. Used twice:
+in Act 1 beat 4 as *"your hit survived / it could have busted"*, and in Act 2 as
+the live next-Draw odds for the hand being held.
 
 **Discard tray.** From Act 2 onward. A compact overlapping card stack, a count,
 and a `See them` button opening a popover that lays the discards out **on the

@@ -158,6 +158,11 @@ const figures = {
       total: mine.playerTotal,
       busted: mine.playerBusted,
       settlement: mine.settlement,
+      // The hole card comes out at settlement, so beat 4 can finally show the
+      // dealer's whole hand rather than the one card beat 1 let you see.
+      dealerRanks: mine.dealerRanks,
+      dealerTotal: mine.dealerTotal,
+      dealerBusted: mine.dealerBusted,
     },
     dealer: DEALER_TOTALS.map((bucket) => ({
       bucket,

@@ -132,9 +132,13 @@ worth making:
 56. As a visitor who has never played, I want to see how a hand is totalled,
     including what an Ace is worth, so that I can follow every number the page
     shows me afterwards.
-57. As a visitor, I want a Running Count visible from the first hand, so that it
-    is a familiar number by the time it matters rather than a new idea sprung on
-    me in the last Act.
+57. As a visitor, I want the Running Count introduced at the *end* of Act 1,
+    once I have already decided without it, and kept on screen from there, so
+    that it is a familiar number by the time it matters without turning the
+    opening into a lesson.
+63. As a visitor, I want the dealer's hole card turned over in Act 1's last
+    beat, alongside the distribution of what dealers make, so that the chart is
+    attached to the hand I actually played rather than floating free of it.
 58. As a visitor, I want to be able to ask what the Running Count is and get the
     Hi-Lo rule, so that I learn it when I choose to rather than when the page
     decides to teach me.
