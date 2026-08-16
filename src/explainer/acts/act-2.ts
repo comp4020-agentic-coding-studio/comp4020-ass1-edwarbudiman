@@ -116,7 +116,39 @@ function compositionBars(state: State): string {
     { className: "axis-bars" },
   );
 
-  return `<p class="axis-full-label">${full} — a full rank</p>` + bars;
+  // Bars carry no text of their own — visual only, same as the dealer
+  // histogram (`views/histogram.ts`). `compositionText` below is the text
+  // equivalent a screen reader gets instead.
+  return `<div aria-hidden="true"><p class="axis-full-label">${full} — a full rank</p>${bars}</div>`;
+}
+
+/**
+ * The composition chart's text equivalent (spec story 48): the argument the
+ * bars draw — which single rank, if any, has fallen short of a full rank —
+ * not a list of thirteen counts. Under Independent Draw every rank always
+ * reads full regardless of what has actually been dealt (`drawWeights`), so
+ * the two branches below are the same "nothing/something moved" distinction
+ * `compositionBars`'s own `varied` flag makes for sighted visitors.
+ */
+function compositionText(state: State): string {
+  const weights = drawWeights(state.shoe, state.model);
+  const full = fullRank(state.shoe);
+  const rank = mostDepletedRank(state.shoe);
+  const left = weights[rank];
+
+  if (left >= full) {
+    return (
+      `Every rank still shows a full ${full} cards. Independent Draw treats ` +
+      "every next card as coming from the same unchanging distribution, so " +
+      "nothing dealt so far shows up as a shorter bar."
+    );
+  }
+
+  return (
+    `${slotHeading(rank)} has fallen to ${left} of a full ${full} — the only ` +
+    "rank shorter than the rest, because cards of that rank have already " +
+    "been dealt. Every other rank still shows its full count."
+  );
 }
 
 /**
@@ -131,24 +163,38 @@ function compositionChart(state: State): string {
   const labels = axisRow(
     RANKS.map((rank) => `<div class="draw">${escapeHtml(rank)}</div>`),
   );
-  return compositionBars(state) + labels;
+  return (
+    `<p class="vh">${escapeHtml(compositionText(state))}</p>` +
+    compositionBars(state) +
+    labels
+  );
 }
 
 /**
  * Free play's composition chart: the same bars, but every rank label is now
  * a real `<button>` selecting that rank for the Detail slot below — here
  * `aria-pressed` is honest, because the label really is a toggle.
+ *
+ * The `id` here is not decorative: it follows `actionButton()`'s exact
+ * `do-<action>-<arg>` shape so the shell's focus-restore-by-id finds the same
+ * rank button again after selecting it re-renders the page — without it,
+ * every rank pick would silently fall back to refocusing the whole section.
  */
 function compositionChartInteractive(state: State, selected: Rank): string {
   const labels = axisRow(
     RANKS.map(
       (rank) =>
-        `<button class="draw" type="button" data-action="select-rank" ` +
-        `data-arg="${escapeHtml(rank)}" aria-pressed="${rank === selected}">` +
+        `<button class="draw" type="button" id="do-select-rank-${escapeHtml(rank)}" ` +
+        `data-action="select-rank" data-arg="${escapeHtml(rank)}" ` +
+        `aria-pressed="${rank === selected}">` +
         `${escapeHtml(rank)}</button>`,
     ),
   );
-  return compositionBars(state) + labels;
+  return (
+    `<p class="vh">${escapeHtml(compositionText(state))}</p>` +
+    compositionBars(state) +
+    labels
+  );
 }
 
 /**
@@ -311,7 +357,7 @@ function countReadoutHtml(state: State): string {
     `<p class="readout">` +
     `<span>Running count</span>` +
     `<b>${escapeHtml(formatSignedCount(state.runningCount))}</b>` +
-    `<button class="why" type="button" popovertarget="how-count" ` +
+    `<button class="why" type="button" id="do-how-count" popovertarget="how-count" ` +
     `aria-label="How the running count works">?</button>` +
     `<span class="spacer"></span>` +
     `<span>Shoe <b>${escapeHtml(formatCount(state.shoe.remaining))}</b></span>` +
@@ -412,7 +458,10 @@ function renderFreePlayHand(state: State): string {
 
     return (
       table +
-      `<p class="data">${escapeHtml(freePlaySettlementCopy(result, hitDrew))}</p>` +
+      // `role="status"` (story 49): the visitor learns the settlement without
+      // polling the page. Fires once per hand, never per frame — nothing in
+      // free play re-renders on its own the way beat 4's climb does.
+      `<p class="data" role="status">${escapeHtml(freePlaySettlementCopy(result, hitDrew))}</p>` +
       actionButton("next-hand", "Next hand", { className: "btn btn--advance" })
     );
   }

@@ -27,8 +27,8 @@ function trayHtml(total: number): string {
   const count =
     `<span class="tray-count"><b>${formatCount(total)}</b> cards discarded</span>`;
   const trigger =
-    `<button class="why why--inline" type="button" popovertarget="${TRAY_POPOVER_ID}">` +
-    `See them</button>`;
+    `<button class="why why--inline" type="button" id="do-tray-open" ` +
+    `popovertarget="${TRAY_POPOVER_ID}">See them</button>`;
 
   return `<div class="tray">${stack}${count}${trigger}</div>`;
 }

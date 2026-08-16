@@ -53,7 +53,8 @@ export function notePopover(options: NotePopoverOptions): string {
     : "";
 
   return (
-    `<button class="${triggerClass}" type="button" popovertarget="${escapeHtml(id)}" ` +
+    `<button class="${triggerClass}" type="button" id="do-${escapeHtml(id)}-trigger" ` +
+    `popovertarget="${escapeHtml(id)}" ` +
     `style="anchor-name: ${anchorName}"${ariaLabelAttr}>${escapeHtml(triggerLabel)}</button>` +
     `<div id="${escapeHtml(id)}" popover style="position-anchor: ${anchorName}">` +
     `<p class="pop-title">${escapeHtml(title)}</p>` +
@@ -83,8 +84,8 @@ export function panelPopover(options: PanelPopoverOptions): string {
     `<div id="${escapedId}" popover class="panel">` +
     `<div class="panel-head">` +
     `<p class="pop-title">${escapeHtml(title)}</p>` +
-    `<button class="panel-close" type="button" popovertarget="${escapedId}" ` +
-    `popovertargetaction="hide">Close</button>` +
+    `<button class="panel-close" type="button" id="do-${escapedId}-close" ` +
+    `popovertarget="${escapedId}" popovertargetaction="hide">Close</button>` +
     `</div>` +
     body +
     `</div>`

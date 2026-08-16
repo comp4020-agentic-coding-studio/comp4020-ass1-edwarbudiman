@@ -17,6 +17,8 @@ import {
   removeCards,
   simulateTrials,
   type PlayOut,
+  type Rank,
+  type Split,
 } from "../../engine/index.ts";
 import { formatCount, formatPercent } from "../format.ts";
 import { actionButton, escapeHtml, section } from "../render.ts";
@@ -71,6 +73,29 @@ function renderBeat1(state: State): string {
   );
 }
 
+/** Natural-language list with an Oxford "and" before the last item, and "Ace"
+ *  spelled out — "Ace, 2, 3, 4 and 5" rather than "A, 2, 3, 4, 5". */
+function listRanks(ranks: readonly Rank[]): string {
+  const named = ranks.map((rank) => (rank === "A" ? "Ace" : rank));
+  if (named.length <= 1) return named.join("");
+  return `${named.slice(0, -1).join(", ")} and ${named[named.length - 1]}`;
+}
+
+/**
+ * The draw strip's text equivalent (spec story 48): which specific ranks
+ * survive and which bust, carrying the argument rather than only the
+ * aggregate proportion already printed visibly below the chart.
+ */
+function drawStripText(split: Split): string {
+  return (
+    `Of the thirteen possible next cards, only ${listRanks(split.surviving)} ` +
+    `keep this hand alive: ${split.surviving.length} of 13, ` +
+    `${formatPercent(split.surviveChance)}. The rest bust it — ` +
+    `${listRanks(split.busting)}: ${split.busting.length} of 13, ` +
+    `${formatPercent(split.bustChance)}.`
+  );
+}
+
 /**
  * Beat 2: every one of the thirteen possible next cards laid out on the
  * shared rank axis, the survive/bust split as both a proportion and a
@@ -101,6 +126,12 @@ function renderBeat2(state: State): string {
       `<div class="spread">` +
       `<div>` +
       `<h3>Every card that could come next</h3>` +
+      // The `.split` divider between the fifth and sixth cell is
+      // `aria-hidden` (a purely visual/positional cue), and the individual
+      // `.draw--bust` cells carry the survive/bust distinction only in
+      // colour — so without this sentence a screen reader has no way to
+      // tell which ranks bust at all (spec story 48).
+      `<p class="vh">${escapeHtml(drawStripText(split))}</p>` +
       draws +
       `<div class="axis-key">` +
       `<span>${escapeHtml(surviveText)}</span>` +
@@ -110,7 +141,7 @@ function renderBeat2(state: State): string {
       `<div>` +
       `<p class="lede">Both choices lose more often than they win. The ` +
       `better Decision is the one that loses less.` +
-      `<button class="why" type="button" popovertarget="why-stand" ` +
+      `<button class="why" type="button" id="do-why-stand" popovertarget="why-stand" ` +
       `style="anchor-name: --a-stand" aria-label="Why standing does not help">` +
       `?</button></p>` +
       `<div id="why-stand" popover style="position-anchor: --a-stand">` +
@@ -199,7 +230,11 @@ function renderBeat3(state: State): string {
     `<h3>Your hand</h3>` +
       table +
       `<p class="data">Dealt from the shoe. Not chosen.</p>` +
-      `<p class="lede">${escapeHtml(settlementCopy(play, hitDrew))}</p>` +
+      // `role="status"` (story 49): the settlement is announced without the
+      // visitor having to find and read it — the button below reuses beat
+      // 2's `advance-beat` id, so focus restoration often lands there
+      // instead of on this paragraph.
+      `<p class="lede" role="status">${escapeHtml(settlementCopy(play, hitDrew))}</p>` +
       actionButton("advance-beat", "Show me 1,000 more hands", {
         className: "btn btn--advance",
       }),
@@ -276,7 +311,7 @@ function renderBeat4(state: State): string {
       `</dl>` +
       `<h3 style="margin-top: 2rem">What the dealer made · ` +
       `${escapeHtml(formatCount(PLAYOUT_TRIALS))} hands` +
-      `<button class="why" type="button" popovertarget="why-dealer" ` +
+      `<button class="why" type="button" id="do-why-dealer" popovertarget="why-dealer" ` +
       `style="anchor-name: --a-dealer" aria-label="What this chart means">?</button>` +
       `</h3>` +
       `<div id="why-dealer" popover style="position-anchor: --a-dealer">` +

@@ -75,7 +75,7 @@ function legendHtml(settlements: Settlements, mine: Settlement): string {
     `<span>${formatCount(settlements.won)} won</span></span>` +
     `<span><i style="background: color-mix(in srgb, var(--rule) 55%, transparent)"></i>` +
     `<span>${formatCount(settlements.push)}</span> ` +
-    `<button class="why why--inline" type="button" popovertarget="why-push" ` +
+    `<button class="why why--inline" type="button" id="do-why-push" popovertarget="why-push" ` +
     `style="anchor-name: --a-push">push?</button></span>` +
     `<span>${youSwatch(mine)}you</span>` +
     `</p>` +

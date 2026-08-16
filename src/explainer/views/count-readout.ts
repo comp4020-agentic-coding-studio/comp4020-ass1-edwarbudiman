@@ -27,7 +27,7 @@ export function countReadoutHtml(runningCount: number, shoeRemaining: number): s
     `<p class="readout" style="border: 0; padding-top: 0">` +
     `<span>Running count</span>` +
     `<b>${escapeHtml(formatSignedCount(runningCount))}</b>` +
-    `<button class="why" type="button" popovertarget="how-count" ` +
+    `<button class="why" type="button" id="do-how-count" popovertarget="how-count" ` +
     `aria-label="How the running count works">?</button>` +
     `<span class="spacer"></span>` +
     `<span>Shoe <b>${escapeHtml(formatCount(shoeRemaining))}</b></span>` +
@@ -62,8 +62,8 @@ export function countRulePanelHtml(): string {
     `<div id="how-count" popover class="panel">` +
     `<div class="panel-head">` +
     `<p class="pop-title">How the running count works</p>` +
-    `<button class="panel-close" type="button" popovertarget="how-count" ` +
-    `popovertargetaction="hide">Close</button>` +
+    `<button class="panel-close" type="button" id="do-how-count-close" ` +
+    `popovertarget="how-count" popovertargetaction="hide">Close</button>` +
     `</div>` +
     `<p>Every card that leaves the shoe moves one number. Low cards raise ` +
     `it, tens and aces lower it, sevens to nines do nothing.</p>` +
