@@ -9,23 +9,22 @@
  * sensible to send focus back to. Nothing here reads any viewport dimension
  * or media query — layout is CSS's job — see `spec/contracts.test.ts`'s
  * resize-safety check, which greps for that mechanically.
+ *
+ * Each Act's own rendering lives under `acts/` — `acts/act-1.ts`,
+ * `acts/act-2.ts`, `acts/act-3.ts` — so later Acts can be built without
+ * colliding with each other. This file keeps only what every Act shares: the
+ * `<section>` wrapper, the button helper, the escaping, and the dispatch.
  */
 
-import { handTotal } from "../engine/index.ts";
 import { escapeHtml } from "./escape-html.ts";
 import type { State } from "./state.ts";
-import { faceDownCard, handHtml, rankCards } from "./views/card.ts";
-import { tableHtml } from "./views/table.ts";
+import { renderAct1 } from "./acts/act-1.ts";
+import { renderAct2 } from "./acts/act-2.ts";
+import { renderAct3 } from "./acts/act-3.ts";
 
 export { escapeHtml };
 
-const ACT_HEADING: Record<State["act"], string> = {
-  1: "Act 1 — How blackjack works",
-  2: "Act 2 — Two kinds of blackjack",
-  3: "Act 3 — The conclusion",
-};
-
-function section(id: string, inner: string): string {
+export function section(id: string, inner: string): string {
   return `<section class="plate" id="${id}" tabindex="-1">${inner}</section>`;
 }
 
@@ -51,67 +50,8 @@ export function actionButton(
   );
 }
 
-function placeholder(id: string, heading: string): string {
-  return section(id, `<h2>${escapeHtml(heading)}</h2>`);
-}
-
-/**
- * Act 1, beat 1: the dealer's upcard face up beside a face-down card, the
- * visitor's two cards and both totals, and Hit / Stand as two identically
- * weighted buttons. Nothing else — no probability appears before the
- * Decision.
- */
-function renderAct1Beat1(state: State): string {
-  const dealerTotal = handTotal(state.dealer);
-  const playerTotal = handTotal(state.hand);
-
-  const table = tableHtml([
-    {
-      label: "Dealer",
-      handHtml: handHtml([...rankCards(state.dealer), faceDownCard()]),
-      total: dealerTotal.total,
-    },
-    {
-      label: "You",
-      handHtml: handHtml(
-        rankCards(state.hand, { bustedLastCard: playerTotal.busted }),
-      ),
-      total: playerTotal.total,
-      busted: playerTotal.busted,
-    },
-  ]);
-
-  return section(
-    "act-1",
-    `<p class="eyebrow">Act 1</p>` +
-      `<h2>You have sixteen</h2>` +
-      `<p class="lede">The dealer is showing a ten. Before you read another ` +
-      `word: hit, or stand?</p>` +
-      table +
-      // Identical classes on both, deliberately: the page must not nudge an
-      // intuition it is about to test.
-      `<div class="decision">` +
-      actionButton("decide", "Hit", { arg: "hit" }) +
-      actionButton("decide", "Stand", { arg: "stand" }) +
-      `</div>`,
-  );
-}
-
-function renderAct1(state: State): string {
-  if (state.beat === 1) return renderAct1Beat1(state);
-  return placeholder("act-1", ACT_HEADING[1]);
-}
-
-function renderAct2(): string {
-  return placeholder("act-2", ACT_HEADING[2]);
-}
-
-function renderAct3(): string {
-  return placeholder("act-3", ACT_HEADING[3]);
-}
-
 export function render(state: State): string {
   if (state.act === 1) return renderAct1(state);
-  if (state.act === 2) return renderAct2();
-  return renderAct3();
+  if (state.act === 2) return renderAct2(state);
+  return renderAct3(state);
 }

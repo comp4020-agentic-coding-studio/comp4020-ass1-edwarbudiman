@@ -12,6 +12,7 @@ import {
   runningCount,
   type DealModel,
   type Decision,
+  type PlayOut,
   type Rank,
   type Shoe,
 } from "../engine/index.ts";
@@ -55,6 +56,13 @@ export interface State {
   discards: Rank[];
   /** Act 2 opens locked to the Deal Model alone; this flips once free play unlocks. */
   act2FreePlay: boolean;
+  /**
+   * Beat 3's Play-out: the visitor's hand carried honestly to settlement.
+   * `null` until the beat 2 -> beat 3 transition deals it (ADR 0001). `render`
+   * is pure, so this is dealt in `advanceBeat`, never here — beat 3's render
+   * only ever displays what this already holds.
+   */
+  playOut: PlayOut | null;
 }
 
 /**
@@ -80,5 +88,6 @@ export function initialState(): State {
     runningCountHighWaterMark: count,
     discards,
     act2FreePlay: false,
+    playOut: null,
   };
 }
