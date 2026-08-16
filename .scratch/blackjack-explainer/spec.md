@@ -30,22 +30,47 @@ page argues.
 It moves through three Acts, holding one layout and revealing progressively
 more:
 
-- **Act 1** — a fixed hand of 16 against a dealer 10. The visitor must choose
-  Hit or Stand on intuition. Then the Explainer shows all thirteen possible
-  Draws, and the visitor discovers that *both* choices lose more often than they
-  win, and that the better choice is the one that loses *less*. Their hand is
-  then honestly played out.
-- **Act 2** — the same hand, held constant, with the Deal Model as the only
-  variable. Under Finite Shoe the Draw distribution moves as cards leave; under
-  Independent Draw it never moves. One variable, one visible difference.
-- **Act 3** — free play from a depleting Shoe with a Hi-Lo Running Count. The
-  visitor accumulates the best information a blackjack player can legitimately
-  have, and then a labelled Scripted Hand takes it away from them anyway.
+- **Act 1 — how blackjack works.** The introduction. A fixed hand of 16 against
+  a dealer 10; the visitor must choose Hit or Stand on intuition. Then the
+  Explainer shows all thirteen possible Draws, and the visitor discovers that
+  *both* choices lose more often than they win, and that the better choice is
+  the one that loses *less*. Their hand is then honestly played out, and placed
+  inside the thousand Play-outs it came from. The Running Count appears as a
+  number here and stays visible for the rest of the page, but Act 1 never stops
+  to teach it.
+- **Act 2 — two kinds of blackjack.** Opens **locked**: the same hand, with the
+  Deal Model as the only variable, so any change is attributable to it and
+  nothing else. Under Finite Shoe the Draw distribution moves as cards leave;
+  under Independent Draw it never moves. Once the visitor has seen that, **free
+  play unlocks** from the same Shoe under whichever Deal Model they choose. This
+  is where the Shoe depletes, where composition and Draw odds move, and where
+  the Running Count becomes worth watching.
+- **Act 3 — the conclusion.** One Scripted Hand, labelled as chosen. The
+  discards are deep, the Running Count is at its high-water mark, every
+  legitimate signal is in the visitor's favour and the Decision is correct. It
+  loses anyway.
 
 The closing line is the thesis: **a good decision is not a promise of a good
 outcome.** Card counting is not a tangent — it is the strongest form of the
 argument, because it shows that even maximum information does not buy a good
 result on any particular hand.
+
+### Revision — the Acts were re-cut
+
+An earlier version of this spec put free play in Act 3 and held Act 2 entirely
+constant. Free play has moved to **Act 2**, and Act 3 has become a single
+scripted beat. Three things follow, and they are the reason the change was
+worth making:
+
+- The Running Count now has to arrive by Act 2, because that is when cards start
+  leaving in bulk. It stops being a third topic bolted onto the end and becomes
+  the payoff of Act 2's own question: if the past constrains the future, here is
+  the tool that exploits it.
+- Act 2 keeps its control by opening locked. The moment where exactly one
+  variable moves still exists; it is now a preamble to free play rather than the
+  whole Act. **Story 21 below is revised accordingly** — it constrains the
+  locked opening, not the entire Act.
+- Act 3 gets short and sharp. It is a conclusion, not a play area.
 
 ## User Stories
 
@@ -65,7 +90,7 @@ result on any particular hand.
    named as omitted, so that I read their absence as a choice rather than an
    error.
 
-### Act 1 — the Decision
+### Act 1 — how blackjack works
 
 6. As a visitor, I want to see the dealer's upcard and my two cards with my hand
    total, so that I understand the situation without knowing blackjack.
@@ -104,11 +129,22 @@ result on any particular hand.
 20. As a visitor, I want to be able to replay Act 1 with the other Decision, so
     that I can compare the two distributions rather than take the claim on
     trust.
+56. As a visitor who has never played, I want to see how a hand is totalled,
+    including what an Ace is worth, so that I can follow every number the page
+    shows me afterwards.
+57. As a visitor, I want a Running Count visible from the first hand, so that it
+    is a familiar number by the time it matters rather than a new idea sprung on
+    me in the last Act.
+58. As a visitor, I want to be able to ask what the Running Count is and get the
+    Hi-Lo rule, so that I learn it when I choose to rather than when the page
+    decides to teach me.
 
-### Act 2 — the Deal Model
+### Act 2 — two kinds of blackjack
 
-21. As a visitor, I want the hand to stay exactly the same when I reach Act 2, so
-    that I can attribute any change to the Deal Model and nothing else.
+21. **Revised.** As a visitor, I want Act 2 to *open* on the same hand with the
+    Deal Model as the only thing I can change, so that I can attribute the
+    change I see to the Deal Model and nothing else. The constraint binds the
+    locked opening, not the whole Act — free play follows it.
 22. As a visitor, I want a single control switching between Finite Shoe and
     Independent Draw, so that the comparison is one action wide.
 23. As a visitor, I want each Deal Model named in plain language on the control,
@@ -125,8 +161,16 @@ result on any particular hand.
 28. As a visitor, I want to understand that only one of these two worlds makes
     remembering worthwhile, so that Act 3 has a reason to exist.
 
-### Act 3 — the Running Count
+### Act 2, continued — free play and the Running Count
 
+These stories were Act 3's in the earlier cut. They moved with the free play.
+
+59. As a visitor, I want free play to unlock once I have seen the locked
+    comparison, so that I get agency after the point has been made rather than
+    instead of it.
+60. As a visitor holding a hand, I want to see the odds that my next Draw
+    survives or busts, so that the composition chart is about the hand in front
+    of me and not about an abstract Shoe.
 29. As a visitor, I want to keep playing hands from the same Shoe, so that
     information accumulates instead of resetting.
 30. As a visitor, I want cards to visibly leave the Shoe and gather somewhere,
@@ -145,8 +189,17 @@ result on any particular hand.
     now hold the best information available, so that the closing beat has
     something to take away from me.
 
-### The close
+### Act 3 — the conclusion
 
+No play happens here. The visitor arrives when they choose to, or when the page
+offers it at the Running Count's high-water mark.
+
+61. As a visitor, I want Act 3 to show me the state I built — deep discards, a
+    Running Count at its highest — so that the information being useless is
+    information I earned rather than information I was handed.
+62. As a visitor, I want to be told that every legitimate signal favours me and
+    the Decision is correct, and *not* that I am about to win, so that the page
+    does not teach the gambler's fallacy in the act of arguing against it.
 36. As a visitor, I want a final Scripted Hand that I lose despite holding good
     information, so that the thesis is delivered at its strongest point.
 37. As a visitor, I want the Scripted Hand to be clearly labelled as chosen
@@ -274,6 +327,29 @@ seam exists, but neither is implemented or offered.
   thirteen ranks — and the busting Draws are the remaining eight. The source
   brief at `brief-idea/blackjack/idea.md` states this incorrectly, marking the 5
   as a bust; a test exists specifically to stop that error reappearing.
+
+**The engine is built.** `src/engine/` is pure, DOM-free and already covered by
+27 tests: ranks and soft-Ace hand totals, Shoe composition, exact Draw
+probability under both Deal Models, dealer Play-out standing on all 17s, seeded
+Monte Carlo settlement, and the Hi-Lo count. Nothing downstream may compute a
+figure of its own; every Act reads this module.
+
+`scripts/figures.ts` runs the engine at the shipped seed and writes
+`.scratch/blackjack-explainer/figures.json`, which the styleframe fetches. That
+exists because the styleframe once printed `10 + 6 + 9 = 26`. The number is 25.
+A figure typed by hand is the same class of error as the brief's 5-busts-16, and
+the structural fix is that no figure is typed anywhere.
+
+Two findings from building it, both of which changed the design:
+
+- The dealer's total distribution needs **its own simulation run**. Taken from
+  the settlement run it is silently conditioned on "the hands where you did not
+  bust", because a busted player ends the hand before the dealer plays.
+- A fixed closing Running Count does not work. Measured over 300 Shoes, +6 is
+  reached before 75% penetration in only 74% of them, and takes about fourteen
+  hands when it is. Act 3 is offered at the count's **high-water mark** instead,
+  which always exists — and "the highest it has been all session" is a truer
+  line than a magic number.
 
 ### Honesty
 

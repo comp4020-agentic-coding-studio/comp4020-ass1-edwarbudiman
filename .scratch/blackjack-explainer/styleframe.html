@@ -904,6 +904,7 @@
         padding: 0.05rem 0.3rem;
       }
 
+      /* small anchored note: a definition you glance at */
       [popover] {
         position: absolute;
         position-area: block-end span-inline-end;
@@ -918,6 +919,45 @@
         font-size: 0.9375rem;
         line-height: 1.5;
         box-shadow: 0 10px 24px -10px var(--shadow-far);
+      }
+
+      /* large centred panel: something you study, with the page dimmed behind */
+      [popover].panel {
+        position: fixed;
+        position-area: none;
+        inset: 0;
+        margin: auto;
+        inline-size: min(36rem, calc(100vw - 2rem));
+        block-size: fit-content;
+        max-block-size: calc(100dvh - 3rem);
+        overflow: auto;
+        padding: 1.5rem;
+      }
+
+      [popover].panel::backdrop {
+        background: rgb(20 17 15 / 0.55);
+      }
+
+      .panel-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .panel-close {
+        font-family: var(--face-display);
+        font-size: 0.6875rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--ink);
+        background: none;
+        border: 1px solid var(--ink);
+        border-radius: 0;
+        padding: 0.35rem 0.6rem;
+        cursor: pointer;
       }
 
       [popover] p {
@@ -951,6 +991,90 @@
         overflow: hidden;
         clip-path: inset(50%);
         white-space: nowrap;
+      }
+
+      /* ---------- the count readout: visible from Act 1 onward ---------- */
+
+      .readout {
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+        padding: 0.6rem 0;
+        border-bottom: 1px solid var(--rule);
+        font-family: var(--face-data);
+        font-size: 0.75rem;
+        color: var(--ink-dim);
+      }
+
+      .readout b {
+        font-family: var(--face-display);
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--ink);
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.02em;
+      }
+
+      .readout .spacer {
+        flex: 1;
+      }
+
+      /* ---------- next-draw odds for the hand actually held ---------- */
+
+      .odds {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        border: 1px solid var(--ink);
+        margin-top: 1rem;
+      }
+
+      .odds div {
+        padding: 0.7rem 0.85rem;
+      }
+
+      .odds div + div {
+        border-left: 1px solid var(--rule);
+      }
+
+      .odds dt {
+        font-family: var(--face-display);
+        font-size: 0.6875rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--ink-dim);
+        margin: 0;
+      }
+
+      .odds dd {
+        margin: 0.1rem 0 0;
+        font-family: var(--face-display);
+        font-size: 1.5rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .odds .miss dt,
+      .odds .miss dd {
+        color: var(--red);
+      }
+
+      /* ---------- act 2's locked opening ---------- */
+
+      .locked {
+        border: 1px solid var(--rule);
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .locked-flag {
+        font-family: var(--face-display);
+        font-size: 0.6875rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--ink-dim);
+        margin: 0 0 0.5rem;
       }
 
       /* ---------- the discard tray ---------- */
@@ -1122,9 +1246,51 @@
         split
       </p>
 
+      <!-- Visible from Act 1 onward. The number is always here; the rule is on
+           demand. Act 1 never stops to teach it. -->
+      <p class="readout">
+        <span>Running count</span>
+        <b id="count-now">0</b>
+        <button
+          class="why"
+          type="button"
+          popovertarget="how-count"
+          aria-label="How the running count works"
+        >
+          ?
+        </button>
+        <span class="spacer"></span>
+        <span>Shoe <b id="shoe-now">312</b></span>
+      </p>
+
+      <div id="how-count" popover class="panel">
+        <div class="panel-head">
+          <p class="pop-title">How the running count works</p>
+          <button class="panel-close" type="button" popovertarget="how-count" popovertargetaction="hide">
+            Close
+          </button>
+        </div>
+        <p>
+          Every card that leaves the shoe moves one number. Low cards raise it,
+          tens and aces lower it, sevens to nines do nothing.
+        </p>
+        <div class="axis-row" id="how-count-strip" style="margin-top: 1rem"></div>
+        <div class="axis-row axis-values" id="how-count-values"></div>
+        <p style="margin-top: 1rem">
+          Aces sit at one end of this row and tens at the other, and both count
+          −1. The count does not care what a card is worth, only whether it is
+          high or low.
+        </p>
+        <p>
+          A high count means the shoe still holds its tens and aces, which
+          favours you <em>across many hands</em>. It never means the next card is
+          good.
+        </p>
+      </div>
+
       <!-- ================= BEAT 1 ================= -->
       <section class="plate" id="act-1">
-        <p class="plate-label">Act 1 · beat 1 — before the decision</p>
+        <p class="plate-label">Act 1 · beat 1 — how blackjack works</p>
         <p class="eyebrow">Act 1</p>
         <h2>You have sixteen</h2>
         <p class="lede">
@@ -1294,9 +1460,31 @@
 
       <!-- ================= ACT 2 ================= -->
       <section class="plate" id="act-2">
-        <p class="plate-label">Act 2 · the deal model, on the same axis</p>
+        <p class="plate-label">Act 2 · locked opening, then free play</p>
         <p class="eyebrow">Act 2</p>
-        <h2>Same hand. One thing changed.</h2>
+        <h2>Two kinds of blackjack</h2>
+
+        <div class="locked">
+          <p class="locked-flag">Locked · the same hand you just played</p>
+          <div class="table" style="padding: 0.5rem 0 1rem">
+            <div class="seat">
+              <div class="hand">
+                <div class="card">
+                  <span class="suit">♠</span><span class="rank">10</span>
+                </div>
+                <div class="card">
+                  <span class="suit">♥</span><span class="rank">6</span>
+                </div>
+              </div>
+              <p class="total">You<b>16</b></p>
+            </div>
+          </div>
+          <p class="note" style="margin-top: 0">
+            Nothing here moves except the deal model. Switch it and watch the
+            bars, then take the shoe wherever you like.
+          </p>
+          <button class="btn btn--advance" type="button">Unlock free play</button>
+        </div>
 
         <div class="spread">
           <div>
@@ -1359,6 +1547,17 @@
             <div class="axis-row axis-bars" id="comp-bars"></div>
             <div class="axis-row" id="comp-strip" style="padding-top: 0.35rem"></div>
 
+            <dl class="odds">
+              <div>
+                <dt>Next card survives</dt>
+                <dd id="odds-survive"></dd>
+              </div>
+              <div class="miss">
+                <dt>Next card busts</dt>
+                <dd id="odds-bust"></dd>
+              </div>
+            </dl>
+
             <div class="slot" id="slot"></div>
 
             <p class="lede" id="act2-copy"></p>
@@ -1368,40 +1567,15 @@
 
       <!-- ================= ACT 3 ================= -->
       <section class="plate" id="act-3">
-        <p class="plate-label">Act 3 · the count, on the same axis</p>
+        <p class="plate-label">Act 3 · the conclusion</p>
         <p class="eyebrow">Act 3</p>
-        <h2>What is left in the shoe</h2>
+        <h2>Everything is in your favour</h2>
 
         <div class="spread">
           <div>
-            <h3>How the count works</h3>
-            <div class="axis-row" id="count-strip"></div>
-            <div class="axis-row axis-values" id="count-values"></div>
-            <p class="note">
-              <span id="count-last"></span>
-              <button
-                class="why"
-                type="button"
-                popovertarget="why-count"
-                style="anchor-name: --a-count"
-                aria-label="Why aces and tens both count minus one"
-              >
-                ?
-              </button>
-            </p>
-            <div id="why-count" popover style="position-anchor: --a-count">
-              <p class="pop-title">Why both ends are −1</p>
-              <p>
-                Aces sit at one end of this axis and tens at the other, and both
-                count −1. The count does not care what a card is worth, only
-                whether it is high or low.
-              </p>
-            </div>
-          </div>
-
-          <div>
+            <h3>What you built</h3>
             <div class="meter-head">
-              <span>Running count</span><b id="count-value"></b>
+              <span>Running count · session high</span><b id="count-value"></b>
             </div>
             <div class="meter-head">
               <span>Cards remaining</span><b id="count-remaining"></b>
@@ -1412,6 +1586,24 @@
             </div>
             <p class="lede" id="act3-copy"></p>
           </div>
+
+          <div>
+            <span class="stamp">Chosen, not dealt</span>
+            <h3 id="scripted-head"></h3>
+
+            <div class="table">
+              <div class="seat">
+                <div class="hand" id="scripted-you"></div>
+                <p class="total" id="scripted-you-total"></p>
+              </div>
+              <div class="seat">
+                <div class="hand" id="scripted-dealer"></div>
+                <p class="total" id="scripted-dealer-total"></p>
+              </div>
+            </div>
+
+            <p class="lede" id="scripted-copy"></p>
+          </div>
         </div>
       </section>
 
@@ -1419,11 +1611,11 @@
       <section class="plate">
         <p class="plate-label">The close</p>
         <div class="close">
-          <span class="stamp">Chosen, not dealt</span>
           <p>
-            This last hand is scripted, and it is labelled because the subject of
-            this page is honesty about probability. You hold the best information
-            a player can legitimately have. You are going to lose anyway.
+            That hand is chosen rather than dealt, and it says so, because the
+            subject of this page is honesty about probability. Nothing was taken
+            from you: the count was real, the shoe was rich, and standing on
+            twenty was right. The dealer made twenty-one anyway.
           </p>
           <p class="thesis">A good decision is not a promise of a good outcome.</p>
         </div>
@@ -1744,37 +1936,68 @@
         }. Only one of these two worlds makes remembering worth anything.`,
       );
 
-      // ---- Act 3 -----------------------------------------------------------
+      // ---- next-draw odds for the hand actually held ------------------------
+      set("odds-survive", `${act1.survivePercent}%`);
+      set("odds-bust", `${act1.bustPercent}%`);
+
+      // ---- the count readout and its rule panel ----------------------------
       const signed = (value) => (value > 0 ? `+${value}` : String(value));
+      set("count-now", signed(act3.count));
+      set("shoe-now", n(act3.remaining));
       onAxis(
-        el("count-strip"),
+        el("how-count-strip"),
         act2.composition.map((rank) => make("div", "draw", rank.rank)),
       );
-      const lastRank = act3.lastFour.at(-1);
       onAxis(
-        el("count-values"),
-        act2.composition.map((rank) => {
-          const cls = [
+        el("how-count-values"),
+        act2.composition.map((rank) =>
+          make(
+            "span",
             rank.hiLo > 0 ? "plus" : rank.hiLo < 0 ? "minus" : "",
-            rank.rank === lastRank.rank ? "just-left" : "",
-          ]
-            .filter(Boolean)
-            .join(" ");
-          return make("span", cls, rank.hiLo > 0 ? "+1" : rank.hiLo < 0 ? "−1" : "0");
-        }),
+            rank.hiLo > 0 ? "+1" : rank.hiLo < 0 ? "−1" : "0",
+          ),
+        ),
         true,
       );
-      el("count-last").replaceChildren(
-        document.createTextNode(`A ${lastRank.rank} just left the shoe: `),
-        make("b", null, signed(lastRank.hiLo)),
-        document.createTextNode(". "),
-      );
+
+      // ---- Act 3: what you built, and the hand that ignores it -------------
       set("count-value", signed(act3.count));
       set("count-remaining", n(act3.remaining));
       el("count-shoe-bar").style.flex = `0 0 ${(act3.remaining / 312) * 100}%`;
       set(
         "act3-copy",
-        `${signed(act3.count)} means the shoe still holds its tens and aces — the highest this count has been all session. You now hold the best information a blackjack player can legitimately have, and it says nothing whatsoever about the next card.`,
+        `The count is at ${signed(act3.count)}, the highest it has been all session, so the shoe still holds its tens and aces. This is the best information a blackjack player can legitimately have — and it is about the hands to come, not about the next card.`,
+      );
+
+      const scripted = figures.scripted;
+      const seat = (hostId, totalId, label, ranks, total) => {
+        el(hostId).replaceChildren(
+          ...ranks.map((rank, i) => {
+            const card = make("div", "card");
+            card.append(
+              make("span", "suit", SUITS[i % SUITS.length]),
+              make("span", "rank", rank),
+            );
+            return card;
+          }),
+        );
+        el(totalId).replaceChildren(
+          document.createTextNode(label),
+          make("b", null, String(total)),
+        );
+      };
+      seat("scripted-you", "scripted-you-total", "You", scripted.you, scripted.yourTotal);
+      seat(
+        "scripted-dealer",
+        "scripted-dealer-total",
+        "Dealer",
+        scripted.dealer,
+        scripted.dealerTotal,
+      );
+      set("scripted-head", `You stand on ${scripted.yourTotal}`);
+      set(
+        "scripted-copy",
+        `Standing on ${scripted.yourTotal} is not a close call — it is the correct decision by any measure, taken with the best information available. The dealer turned a ${scripted.dealer[0]} into ${scripted.dealerTotal}. You ${scripted.settlement === "lost" ? "lost" : scripted.settlement}.`,
       );
     </script>
   </body>

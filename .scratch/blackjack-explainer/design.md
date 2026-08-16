@@ -87,13 +87,24 @@ not a progress bar.
 heading, then a `dl` of tabular figures. Stays a slot rather than a popover
 because these numbers get compared across thirteen ranks in a row.
 
-**Popover.** Native `[popover]` + `popovertarget`, anchored with `position-area`
-and `position-try-fallbacks: flip-block, flip-inline` so it reflows at 390 in CSS
-alone. Trigger is a small `?` button, or a labelled inline button where the word
-itself is the question (`push?`, `See them`). Click/tap only — no hover. Where
-anchor positioning is unsupported it falls back to the top layer's centred
-default, which is acceptable. Carries: definitions, "why this matters", and the
-discard tray.
+**Popover — two sizes.** Native `[popover]` + `popovertarget` throughout;
+click/tap only, no hover.
+
+- *Note* — small, anchored with `position-area` and `position-try-fallbacks:
+  flip-block, flip-inline` so it reflows at 390 in CSS alone, no backdrop.
+  Trigger is a small `?` button, or an inline button where the word itself is
+  the question (`push?`). Carries definitions and "why this matters".
+- *Panel* — large, centred in the top layer with a **dimmed `::backdrop`**, up to
+  `36rem`, its own heading and a close button. Carries the discard tray and
+  anything else you study rather than glance at.
+
+Where anchor positioning is unsupported a note falls back to the centred
+default, which is acceptable.
+
+**Count readout.** The Running Count is a persistent number — `+2`, `−1` — from
+Act 1 onward, with a `?` opening the Hi-Lo rule as the annotated thirteen-rank
+axis. The number is always visible; the rule is on demand. Act 1 never stops to
+teach it.
 
 **Discard tray.** From Act 2 onward. A compact overlapping card stack, a count,
 and a `See them` button opening a popover that lays the discards out **on the
@@ -129,15 +140,17 @@ one long scroll:
    Monte Carlo, the chart that explains the loss) and the waffle with your mark
    in it. → *Try the other decision*
 
-Act 2 holds the hand constant and offers one control: Finite Shoe against
-Independent Draw. The composition bars move under the first and are pinned at 24
-under the second.
+Act 2 **opens locked**: the same hand, one control, Finite Shoe against
+Independent Draw. The composition bars move under the first and are pinned at a
+full rank under the second. A button then unlocks **free play** from the same
+Shoe — this is where the Shoe depletes, where the next-Draw odds for the hand in
+hand are shown beside the composition chart, and where the Running Count becomes
+worth watching.
 
-Act 3 is free play from the depleting Shoe. The Hi-Lo rule is taught as the
-annotated axis, with the value of the card that just left flashed on its own
-column. The close is offered once the Running Count crosses roughly +6, with a
-permanent escape hatch, so the visitor has genuinely earned the information the
-Scripted Hand then fails to reward.
+Act 3 is one Scripted Hand, labelled as chosen. No play. Deep discards, the
+Running Count at its high-water mark, every legitimate signal in the visitor's
+favour and the Decision correct — and it loses. It is offered when the visitor
+chooses, or when the count reaches its session high.
 
 Layout is one column at 390 and two from `60rem` — table left, model right. Same
 blocks, same order. Nothing in TypeScript knows which one it is in.

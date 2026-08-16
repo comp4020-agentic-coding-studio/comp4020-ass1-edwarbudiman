@@ -1,5 +1,19 @@
 {
   "seed": 20260816,
+  "scripted": {
+    "you": [
+      "10",
+      "10"
+    ],
+    "dealer": [
+      "6",
+      "5",
+      "10"
+    ],
+    "yourTotal": 20,
+    "dealerTotal": 21,
+    "settlement": "lost"
+  },
   "trials": 1000,
   "fullRank": 24,
   "hand": {
@@ -173,14 +187,14 @@
     }
   },
   "act2": {
-    "remaining": 265,
-    "discarded": 47,
+    "remaining": 277,
+    "discarded": 35,
     "composition": [
       {
         "rank": "A",
         "left": 22,
         "gone": 2,
-        "percent": 8.3,
+        "percent": 7.9,
         "wasPercent": 7.7,
         "hiLo": -1
       },
@@ -188,23 +202,23 @@
         "rank": "2",
         "left": 22,
         "gone": 2,
-        "percent": 8.3,
+        "percent": 7.9,
         "wasPercent": 7.7,
         "hiLo": 1
       },
       {
         "rank": "3",
-        "left": 18,
-        "gone": 6,
-        "percent": 6.8,
+        "left": 17,
+        "gone": 7,
+        "percent": 6.1,
         "wasPercent": 7.7,
         "hiLo": 1
       },
       {
         "rank": "4",
-        "left": 22,
-        "gone": 2,
-        "percent": 8.3,
+        "left": 21,
+        "gone": 3,
+        "percent": 7.6,
         "wasPercent": 7.7,
         "hiLo": 1
       },
@@ -212,15 +226,15 @@
         "rank": "5",
         "left": 21,
         "gone": 3,
-        "percent": 7.9,
+        "percent": 7.6,
         "wasPercent": 7.7,
         "hiLo": 1
       },
       {
         "rank": "6",
-        "left": 18,
-        "gone": 6,
-        "percent": 6.8,
+        "left": 19,
+        "gone": 5,
+        "percent": 6.9,
         "wasPercent": 7.7,
         "hiLo": 1
       },
@@ -228,7 +242,7 @@
         "rank": "7",
         "left": 21,
         "gone": 3,
-        "percent": 7.9,
+        "percent": 7.6,
         "wasPercent": 7.7,
         "hiLo": 0
       },
@@ -236,79 +250,79 @@
         "rank": "8",
         "left": 22,
         "gone": 2,
-        "percent": 8.3,
+        "percent": 7.9,
         "wasPercent": 7.7,
         "hiLo": 0
       },
       {
         "rank": "9",
-        "left": 19,
-        "gone": 5,
-        "percent": 7.2,
+        "left": 24,
+        "gone": 0,
+        "percent": 8.7,
         "wasPercent": 7.7,
         "hiLo": 0
       },
       {
         "rank": "10",
-        "left": 19,
-        "gone": 5,
+        "left": 20,
+        "gone": 4,
         "percent": 7.2,
         "wasPercent": 7.7,
         "hiLo": -1
       },
       {
         "rank": "J",
-        "left": 21,
-        "gone": 3,
+        "left": 22,
+        "gone": 2,
         "percent": 7.9,
         "wasPercent": 7.7,
         "hiLo": -1
       },
       {
         "rank": "Q",
-        "left": 20,
-        "gone": 4,
-        "percent": 7.5,
+        "left": 23,
+        "gone": 1,
+        "percent": 8.3,
         "wasPercent": 7.7,
         "hiLo": -1
       },
       {
         "rank": "K",
-        "left": 20,
-        "gone": 4,
-        "percent": 7.5,
+        "left": 23,
+        "gone": 1,
+        "percent": 8.3,
         "wasPercent": 7.7,
         "hiLo": -1
       }
     ],
     "thinnest": {
       "rank": "3",
-      "left": 18,
-      "gone": 6,
-      "percent": 6.8,
+      "left": 17,
+      "gone": 7,
+      "percent": 6.1,
       "wasPercent": 7.7,
       "hiLo": 1
     }
   },
   "act3": {
-    "remaining": 265,
-    "count": 2,
-    "cardsSeen": 44,
+    "remaining": 277,
+    "count": 11,
+    "cardsSeen": 32,
     "lastFour": [
       {
-        "rank": "6",
-        "hiLo": 1
-      },
-      {
-        "rank": "10",
+        "rank": "A",
         "hiLo": -1
       },
       {
-        "rank": "9",
+        "rank": "2",
+        "hiLo": 1
+      },
+      {
+        "rank": "7",
         "hiLo": 0
       },
       {
-        "rank": "5",
+        "rank": "6",
         "hiLo": 1
       }
     ]
