@@ -1,6 +1,6 @@
 # 08 — Deploy, as soon as Act 1 works
 
-Status: ready-for-agent
+Status: done
 Blocked by: 01, 07
 
 ## Why

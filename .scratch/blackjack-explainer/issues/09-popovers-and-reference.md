@@ -1,6 +1,6 @@
 # 09 — Two popover sizes, and the reference drawer
 
-Status: ready-for-agent
+Status: done
 Blocked by: 04
 
 ## Why
