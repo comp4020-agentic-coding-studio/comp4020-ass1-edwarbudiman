@@ -1,6 +1,6 @@
 # 03 — The seam: State, transitions, render
 
-Status: ready-for-agent
+Status: done
 Blocked by: 02
 
 ## Why

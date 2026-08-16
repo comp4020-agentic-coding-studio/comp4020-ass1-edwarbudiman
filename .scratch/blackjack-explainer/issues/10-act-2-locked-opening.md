@@ -1,6 +1,6 @@
 # 10 — Act 2's locked opening
 
-Status: ready-for-agent
+Status: done
 Blocked by: 07
 
 ## Why

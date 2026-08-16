@@ -1,6 +1,6 @@
 # 14 — The four spec contracts as tests
 
-Status: ready-for-agent
+Status: done
 Blocked by: 03
 
 ## Why

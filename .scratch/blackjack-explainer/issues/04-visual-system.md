@@ -1,6 +1,6 @@
 # 04 — The visual system in styles.css
 
-Status: ready-for-agent
+Status: done
 Blocked by: 02
 
 ## Why

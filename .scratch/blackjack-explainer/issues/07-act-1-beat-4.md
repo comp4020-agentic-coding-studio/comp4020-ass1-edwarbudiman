@@ -1,6 +1,6 @@
 # 07 — Act 1, beat 4: the thousand, and the count arrives
 
-Status: ready-for-agent
+Status: done
 Blocked by: 06
 
 ## Why

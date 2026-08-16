@@ -1,6 +1,6 @@
 # 06 — Act 1, beats 1 to 3
 
-Status: ready-for-agent
+Status: done
 Blocked by: 03, 05
 
 ## Why

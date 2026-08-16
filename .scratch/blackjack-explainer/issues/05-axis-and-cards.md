@@ -1,6 +1,6 @@
 # 05 — The thirteen-rank axis and the cards
 
-Status: ready-for-agent
+Status: done
 Blocked by: 04
 
 ## Why
