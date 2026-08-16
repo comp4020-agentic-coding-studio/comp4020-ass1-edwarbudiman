@@ -29,13 +29,27 @@ export function drawCard(shoe: Shoe, model: DealModel, rng: Rng): Draw {
   if (total <= 0) throw new Error("Nothing left to draw");
 
   let ticket = rng() * total;
-  for (const rank of RANKS) {
+  for (let index = 0; index < RANKS.length; index++) {
+    const rank = RANKS[index];
     ticket -= weights[rank];
     if (ticket < 0) {
       // Under Independent Draw the weights are the fresh composition, so a rank
       // the shoe has genuinely run out of can come up. Fall through to the next
       // rank that is actually there rather than throwing.
       if (shoe.composition[rank] > 0) return { rank, shoe: removeCard(shoe, rank) };
+
+      // "The next rank", counted from the one the ticket landed on and wrapping
+      // past King back to Ace. Searching RANKS from the start instead would
+      // always hand back the first non-empty rank, which is Ace-first order —
+      // so every exhausted rank would resolve toward Ace and quietly bias the
+      // deal. Unreachable while no rank has been fully depleted; wrong the
+      // moment one is.
+      for (let step = 1; step < RANKS.length; step++) {
+        const next = RANKS[(index + step) % RANKS.length];
+        if (shoe.composition[next] > 0) {
+          return { rank: next, shoe: removeCard(shoe, next) };
+        }
+      }
       break;
     }
   }
