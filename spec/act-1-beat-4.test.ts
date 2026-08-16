@@ -39,6 +39,20 @@ function beat4State(decision: "hit" | "stand" = "hit"): State {
  *  itself deals from. */
 const openingShoe = removeCards(freshShoe(), [...OPENING_HAND, ...OPENING_UPCARD]);
 
+/**
+ * Finding 1: `dealerDistribution` removes the dealer's own cards from
+ * whatever Shoe it is handed, internally, exactly once
+ * (`src/engine/simulate.ts`). So the Shoe fed to it must have ONLY the
+ * visitor's hand removed beforehand — never `openingShoe` above, which
+ * already has the dealer's upcard removed too and would make
+ * `dealerDistribution` remove that same upcard a second time (three tens
+ * gone for two tens on the table: one from the hand, one from the dealer's
+ * upcard). This is deliberately a different Shoe object from `openingShoe`,
+ * not a second name for the same computation, so this test cannot fall into
+ * the same trap the production bug did.
+ */
+const dealerShoe = removeCards(freshShoe(), OPENING_HAND);
+
 describe("beat 4 — the dealer's hand, hole card turned over", () => {
   it("reveals the dealer's full hand, total, and notes beat 1 only showed the upcard", () => {
     const state = beat4State();
@@ -75,7 +89,7 @@ describe("beat 4 — the dealer histogram", () => {
     const state = beat4State();
     const expectedDist = dealerDistribution(
       state.dealer,
-      openingShoe,
+      dealerShoe,
       state.model,
       PLAYOUT_TRIALS,
     );
@@ -99,13 +113,43 @@ describe("beat 4 — the dealer histogram", () => {
 
     // Ground truth at the shipped seed (.scratch/blackjack-explainer/figures.json).
     expect(expectedDist.totals).toEqual({
-      "17": 109,
-      "18": 118,
+      "17": 107,
+      "18": 115,
       "19": 110,
-      "20": 332,
+      "20": 335,
       "21": 126,
-      bust: 205,
+      bust: 207,
     });
+  });
+
+  it("removes exactly the cards on the table — never the dealer's upcard twice (finding 1)", () => {
+    const state = beat4State();
+
+    // The bug this regression test guards against: passing a Shoe that
+    // already has the dealer's upcard removed (`openingShoe`, which matches
+    // what beat 2's own `bustSplit` reads) into `dealerDistribution`, which
+    // removes the dealer's cards again internally. That leaves the
+    // simulation starting from one fewer of whatever rank the upcard is than
+    // was actually on the table — three tens gone for two tens on the table,
+    // at the shipped opening hand.
+    const buggyDoubleRemoval = dealerDistribution(
+      state.dealer,
+      openingShoe,
+      state.model,
+      PLAYOUT_TRIALS,
+    );
+    const correct = dealerDistribution(state.dealer, dealerShoe, state.model, PLAYOUT_TRIALS);
+
+    // If these two ever produced the same totals the fixture itself would be
+    // useless as a regression guard, so assert they genuinely differ first.
+    expect(correct.totals).not.toEqual(buggyDoubleRemoval.totals);
+
+    // The rendered page must match the correctly-composed simulation, not
+    // the double-removal one.
+    const html = render(state);
+    for (const bucket of ["17", "18", "19", "20", "21", "bust"] as const) {
+      expect(html).toContain(formatPercent(correct.totals[bucket] / PLAYOUT_TRIALS));
+    }
   });
 
   it("is visual only, and reaches assistive tech through a text equivalent, never a visible paragraph", () => {
@@ -117,15 +161,15 @@ describe("beat 4 — the dealer histogram", () => {
 
     const text = doc.querySelector(".vh")?.textContent ?? "";
     expect(text.length).toBeGreaterThan(0);
-    expect(text).toContain(formatPercent(109 / PLAYOUT_TRIALS));
-    expect(text).toContain(formatPercent(332 / PLAYOUT_TRIALS));
+    expect(text).toContain(formatPercent(107 / PLAYOUT_TRIALS));
+    expect(text).toContain(formatPercent(335 / PLAYOUT_TRIALS));
 
     // The explanation of what the chart means is a popover, not prose on the
     // page — the visible copy around the chart must not restate the figures.
     const visibleParas = [...doc.querySelectorAll("p:not(.vh)")].map(
       (el) => el.textContent ?? "",
     );
-    expect(visibleParas.some((t) => t.includes(formatPercent(332 / PLAYOUT_TRIALS)))).toBe(
+    expect(visibleParas.some((t) => t.includes(formatPercent(335 / PLAYOUT_TRIALS)))).toBe(
       false,
     );
   });

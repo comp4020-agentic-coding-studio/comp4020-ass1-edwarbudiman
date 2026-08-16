@@ -258,13 +258,30 @@ function renderBeat3(state: State): string {
  * hand, dealer, model and default seed `dealBeat3` used means trial zero of
  * this run is bit-for-bit the same call, so the visitor's own Play-out is
  * genuinely inside the 1,000, not a lookalike stitched in beside them.
+ *
+ * `dealerDistribution` has the opposite contract from `simulateTrials`: it
+ * removes the dealer's own cards from the Shoe it is handed, internally,
+ * exactly once (`src/engine/simulate.ts`). So `openingShoe` — hand AND
+ * dealer already removed, to match beat 2's own `bustSplit` reading — must
+ * never be passed to it: that would remove the dealer's upcard twice, one
+ * fewer ten (or whatever rank) in the simulated shoe than was actually on the
+ * table. `dealerShoe` below removes only the visitor's hand, leaving the
+ * dealer's own cards for `dealerDistribution` to remove itself.
  */
 function renderBeat4(state: State): string {
   const play = state.playOut;
   if (!play) return section("act-1", `<h2>${escapeHtml(ACT_1_HEADING)}</h2>`);
 
   const decision = state.decision ?? "hit";
+  // Finding 6: the Deal Model in force when `play` was dealt, not whatever
+  // `state.model` reads now — a later visit to Act 2 can move that without
+  // touching a Play-out that already happened. `playOutModel` is only ever
+  // `null` before beat 3 has dealt anything, which cannot be true here since
+  // `play` already exists; `?? state.model` is a defensive fallback, not the
+  // intended path.
+  const model = state.playOutModel ?? state.model;
   const openingShoe = removeCards(freshShoe(), [...state.hand, ...state.dealer]);
+  const dealerShoe = removeCards(freshShoe(), state.hand);
 
   const dealerTotal = handTotal(play.dealerRanks);
   const dealerTable = tableHtml([
@@ -278,31 +295,39 @@ function renderBeat4(state: State): string {
     },
   ]);
   const upcard = state.dealer[0]!;
-  const holeCard = play.dealerRanks[1] ?? upcard;
+  // Finding 7: `playOut` returns just the upcard, with no second element, when
+  // the player busted and the dealer never got to draw — falling back to
+  // `upcard` there would print the hole card as being the same card already
+  // shown face up in beat 1. Only render the reveal when a hole card exists.
+  const holeCard = play.dealerRanks[1];
 
-  const split = bustSplit(state.hand, openingShoe, state.model);
+  const split = bustSplit(state.hand, openingShoe, model);
   const survivedLabel = decision === "hit" ? "Your hit survived" : "A hit would have survived";
 
   const dealerDist = dealerDistribution(
     state.dealer,
-    openingShoe,
-    state.model,
+    dealerShoe,
+    model,
     PLAYOUT_TRIALS,
   );
 
   const trials = simulateTrials(
-    { hand: state.hand, dealer: state.dealer, shoe: freshShoe(), model: state.model },
+    { hand: state.hand, dealer: state.dealer, shoe: freshShoe(), model },
     decision,
     PLAYOUT_TRIALS,
   );
+
+  const holeCardNote = holeCard
+    ? `<p class="note">The hole card was ${escapeHtml(holeCard)}. Beat one only ` +
+      `ever showed you the ${escapeHtml(upcard)}, which is all you get to decide ` +
+      `on at a real table.</p>`
+    : "";
 
   return section(
     "act-1",
     `<h3>What the dealer had</h3>` +
       dealerTable +
-      `<p class="note">The hole card was ${escapeHtml(holeCard)}. Beat one only ` +
-      `ever showed you the ${escapeHtml(upcard)}, which is all you get to decide ` +
-      `on at a real table.</p>` +
+      holeCardNote +
       `<dl class="odds">` +
       `<div><dt>${escapeHtml(survivedLabel)}</dt>` +
       `<dd>${escapeHtml(formatPercent(split.surviveChance))}</dd></div>` +

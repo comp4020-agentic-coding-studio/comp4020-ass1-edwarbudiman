@@ -58,7 +58,15 @@ const mine = playOut(
 
 // ---- Act 1, beat 4: the thousand -----------------------------------------
 
-const dealer = dealerDistribution(UPCARD, openingShoe, MODEL, TRIALS);
+// `dealerDistribution` removes the dealer's own cards from the Shoe it is
+// handed, internally, exactly once (src/engine/simulate.ts). `openingShoe`
+// above already has the dealer's upcard removed (to match beat 2's own
+// `bustSplit` reading), so handing it to `dealerDistribution` too would
+// remove that upcard a second time — one card short of what was actually on
+// the table. `dealerShoe` removes only the visitor's hand, leaving the
+// dealer's upcard for `dealerDistribution` to remove itself.
+const dealerShoe = removeCards(freshShoe(), HAND);
+const dealer = dealerDistribution(UPCARD, dealerShoe, MODEL, TRIALS);
 const settled = simulate(table, "hit", TRIALS);
 
 // ---- Act 2: a shoe that has been played from ------------------------------

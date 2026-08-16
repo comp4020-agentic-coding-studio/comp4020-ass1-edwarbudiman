@@ -437,12 +437,23 @@ function renderFreePlayHand(state: State): string {
 
   if (result) {
     const hitDrew = result.playerRanks.length > hand.length;
+    // Finding 9: on a player bust, `playOut` settles the hand before the
+    // dealer ever plays, so `result.dealerRanks` holds only the upcard — one
+    // card fewer than the undecided view above showed (upcard + a face-down
+    // hole card). Rendering `result.dealerRanks` alone would make that second
+    // card visibly disappear at exactly the moment the hand settles. There is
+    // no real hole-card rank to reveal here (the engine never dealt one, and
+    // inventing one would make this settled view lie about what happened —
+    // see ADR 0001), so the fix is to keep the placeholder rather than either
+    // extreme: still face-down, never a fabricated rank, but still on screen.
+    const dealerCards =
+      result.dealerRanks.length > 1
+        ? rankCards(result.dealerRanks, { bustedLastCard: result.dealerBusted })
+        : [...rankCards(result.dealerRanks), faceDownCard()];
     const table = tableHtml([
       {
         label: "Dealer",
-        handHtml: handHtml(
-          rankCards(result.dealerRanks, { bustedLastCard: result.dealerBusted }),
-        ),
+        handHtml: handHtml(dealerCards),
         total: result.dealerTotal,
         busted: result.dealerBusted,
       },
@@ -495,14 +506,20 @@ function renderFreePlayHand(state: State): string {
  * Free play: the same Shoe and Deal Model the locked opening just compared,
  * now dealing hand after hand while the Shoe depletes, the discard tray
  * fills, and the Running Count moves toward its high-water mark (story 29).
- * The odds pair and Detail slot read whatever hand is actually current —
- * `result?.playerRanks ?? freePlayHand` — never `state.hand`, the frozen
- * hand the locked opening compares Deal Models against (story 60).
+ * The Detail slot reads whatever rank is selected regardless of a hand being
+ * held (it always has something to show), but the odds pair — story 60's
+ * "the odds that MY NEXT DRAW survives or busts" — only has a next Draw to
+ * be about while a hand is still undecided. Finding 8: once `freePlayResult`
+ * is set the hand is settled and will never draw again, so `heldHand` is
+ * `null` and the odds pair is omitted rather than printing a stale or
+ * degenerate (0%/100%) split beside a hand nobody can act on anymore.
  */
 function renderFreePlay(state: State): string {
-  const currentHand = state.freePlayResult?.playerRanks ?? state.freePlayHand ?? [];
+  const heldHand = state.freePlayResult ? null : (state.freePlayHand ?? []);
   const selectedRank = state.act2SelectedRank ?? mostDepletedRank(state.shoe);
-  const split = bustSplit(currentHand, state.shoe, state.model);
+  const oddsPair = heldHand
+    ? oddsPairHtml(bustSplit(heldHand, state.shoe, state.model))
+    : "";
   const remainingPercent = (state.shoe.remaining / state.shoe.size) * 100;
 
   return section(
@@ -536,7 +553,7 @@ function renderFreePlay(state: State): string {
       `<div>` +
       `<h3>How many of each rank are left</h3>` +
       compositionChartInteractive(state, selectedRank) +
-      oddsPairHtml(split) +
+      oddsPair +
       countReadoutHtml(state) +
       lastCardHiLoHtml(state) +
       `<p class="lede">${RUNNING_COUNT_WARNING}</p>` +

@@ -64,6 +64,15 @@ export interface State {
    */
   playOut: PlayOut | null;
   /**
+   * The Deal Model that was in force when `playOut` was dealt — `null` until
+   * `dealBeat3` sets both together. Beat 4 is a report on a Play-out that
+   * already happened, so its `dealerDist`, `split` and `trials` all read
+   * THIS, never the live `state.model`: visiting Act 2, switching the Deal
+   * Model there and returning to `#act-1` must not silently re-simulate a
+   * hand that was already dealt under a different model (finding 6).
+   */
+  playOutModel: DealModel | null;
+  /**
    * Act 2 free play: the current hand's cards once one has been dealt from
    * the shared Shoe, `null` before free play has dealt its first hand. Kept
    * separate from `state.hand` (Act 1's frozen sixteen, and the hand the
@@ -114,6 +123,7 @@ export function initialState(): State {
     discards,
     act2FreePlay: false,
     playOut: null,
+    playOutModel: null,
     freePlayHand: null,
     freePlayDealer: null,
     freePlayResult: null,

@@ -37,6 +37,11 @@ function otherDecision(decision: Decision | null): Decision {
  * card, if any, plus the dealer's hole card and any further hits) are folded
  * into the Shoe, the discards and the Running Count — the opening three cards
  * are already accounted for.
+ *
+ * `state.model` at the moment of this call is also recorded onto
+ * `playOutModel` (finding 6): beat 4 reports on this Play-out specifically,
+ * and must keep reading the Deal Model it was actually dealt under even if
+ * the visitor later changes `state.model` in Act 2 and returns.
  */
 function dealBeat3(state: State): State {
   const decision = state.decision ?? "stand";
@@ -60,6 +65,7 @@ function dealBeat3(state: State): State {
     ...state,
     beat: 3,
     playOut: result,
+    playOutModel: state.model,
     shoe,
     discards,
     runningCount: count,
@@ -200,6 +206,13 @@ export function nextHand(state: State): State {
  * adds are folded into the Shoe, the discards and the Running Count — the
  * hand's own two cards and the dealer's upcard are already accounted for by
  * `dealFreePlayHand`.
+ *
+ * `freePlayDealer` is updated to `result.dealerRanks` here (finding 9) so
+ * `state.ts`'s doc comment on that field — "filled to the full dealer hand
+ * once `freePlayResult` is set" — is actually true, rather than the field
+ * silently staying frozen at just the upcard `dealFreePlayHand` dealt. On a
+ * player bust `result.dealerRanks` is still only the upcard (the dealer never
+ * got to play), so "full dealer hand" there honestly means one card, not two.
  */
 function settleFreePlayHand(state: State, decision: Decision): State {
   const hand = state.freePlayHand;
@@ -224,6 +237,7 @@ function settleFreePlayHand(state: State, decision: Decision): State {
     runningCount: count,
     runningCountHighWaterMark: Math.max(state.runningCountHighWaterMark, count),
     freePlayResult: result,
+    freePlayDealer: result.dealerRanks,
   };
 }
 
@@ -268,6 +282,18 @@ export function advanceSimulation(state: State, by: number): State {
  * settlement again. The high-water mark is a session figure, not a per-run
  * one, so it is never lowered by a reset — only ever raised, and only if the
  * reset count itself somehow exceeded it.
+ *
+ * Finding 2: resetting the Shoe back to the opening deal returns every card
+ * free play had dealt since then — they are no longer removed from it. If
+ * Act 2's free-play fields survived that untouched, the Explainer would be
+ * left holding a hand (and a dealer, and a settled result) whose exact cards
+ * are simultaneously back in the Shoe, discoverable again next deal. There is
+ * no honest way to keep that hand: the Shoe it was dealt from no longer
+ * exists. So free play is reset alongside the Shoe — `act2FreePlay` back to
+ * `false` (Act 2 re-locks, exactly the state a fresh visit to the opening
+ * deal would be in) and every free-play field cleared, rather than leaving
+ * `act2FreePlay: true` paired with a `null` hand, a shape free play's own
+ * render never otherwise produces.
  */
 export function replayWithOtherDecision(state: State): State {
   const discards = [...OPENING_HAND, ...OPENING_UPCARD];
@@ -284,7 +310,13 @@ export function replayWithOtherDecision(state: State): State {
     discards,
     playoutProgress: 0,
     playOut: null,
+    playOutModel: null,
     runningCount: count,
     runningCountHighWaterMark: Math.max(state.runningCountHighWaterMark, count),
+    act2FreePlay: false,
+    freePlayHand: null,
+    freePlayDealer: null,
+    freePlayResult: null,
+    act2SelectedRank: null,
   };
 }

@@ -157,13 +157,13 @@
     "dealer": [
       {
         "bucket": "17",
-        "count": 109,
-        "percent": 10.9
+        "count": 107,
+        "percent": 10.7
       },
       {
         "bucket": "18",
-        "count": 118,
-        "percent": 11.8
+        "count": 115,
+        "percent": 11.5
       },
       {
         "bucket": "19",
@@ -172,8 +172,8 @@
       },
       {
         "bucket": "20",
-        "count": 332,
-        "percent": 33.2
+        "count": 335,
+        "percent": 33.5
       },
       {
         "bucket": "21",
@@ -182,8 +182,8 @@
       },
       {
         "bucket": "bust",
-        "count": 205,
-        "percent": 20.5
+        "count": 207,
+        "percent": 20.7
       }
     ],
     "settlements": {
