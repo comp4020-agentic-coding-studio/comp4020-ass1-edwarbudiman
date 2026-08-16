@@ -1,6 +1,6 @@
 # 11 — Act 2 free play, composition, and the discard tray
 
-Status: ready-for-agent
+Status: done
 Blocked by: 10, 09
 
 ## Why
