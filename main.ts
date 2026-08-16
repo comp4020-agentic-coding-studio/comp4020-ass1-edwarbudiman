@@ -3,7 +3,7 @@
 // logic worth testing — everything meaningful lives behind
 // `src/explainer/` (state, transitions, render).
 
-import type { DealModel, Decision } from "./src/engine/index.ts";
+import type { DealModel, Decision, Rank } from "./src/engine/index.ts";
 import { render } from "./src/explainer/render.ts";
 import { initialState, PLAYOUT_TRIALS, type State } from "./src/explainer/state.ts";
 import {
@@ -11,8 +11,12 @@ import {
   advanceSimulation,
   decide,
   goToAct,
+  hitFreePlay,
+  nextHand,
   replayWithOtherDecision,
+  selectRank,
   setModel,
+  standFreePlay,
   unlockFreePlay,
 } from "./src/explainer/transitions.ts";
 
@@ -30,6 +34,10 @@ const actions: Record<string, Action> = {
   "set-model": (s, arg) => setModel(s, arg as DealModel),
   "unlock-free-play": (s) => unlockFreePlay(s),
   "replay-other-decision": (s) => replayWithOtherDecision(s),
+  "hit-free-play": (s) => hitFreePlay(s),
+  "stand-free-play": (s) => standFreePlay(s),
+  "next-hand": (s) => nextHand(s),
+  "select-rank": (s, arg) => selectRank(s, arg as Rank),
 };
 
 function actFromHash(hash: string): State["act"] {

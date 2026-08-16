@@ -63,6 +63,31 @@ export interface State {
    * only ever displays what this already holds.
    */
   playOut: PlayOut | null;
+  /**
+   * Act 2 free play: the current hand's cards once one has been dealt from
+   * the shared Shoe, `null` before free play has dealt its first hand. Kept
+   * separate from `state.hand` (Act 1's frozen sixteen, and the hand the
+   * locked opening compares Deal Models against) — free play never touches
+   * that hand, so Act 2's own re-deals cannot be mistaken for it.
+   */
+  freePlayHand: Rank[] | null;
+  /**
+   * The dealer's cards for the current free-play hand. Holds only the upcard
+   * while the hand is undecided, exactly like `state.dealer` through Act 1
+   * beat 1 — the hole card does not exist until `hitFreePlay`/`standFreePlay`
+   * deals it. Filled to the full dealer hand once `freePlayResult` is set.
+   */
+  freePlayDealer: Rank[] | null;
+  /** The current free-play hand's Play-out once `hitFreePlay` or
+   *  `standFreePlay` has settled it; `null` while the hand is still undecided
+   *  or before the first hand has been dealt. */
+  freePlayResult: PlayOut | null;
+  /**
+   * The rank Act 2's Detail slot is currently showing. `null` until the
+   * visitor selects one, in which case `renderAct2` falls back to the most
+   * depleted rank — the same default the locked opening's slot always shows.
+   */
+  act2SelectedRank: Rank | null;
 }
 
 /**
@@ -89,5 +114,9 @@ export function initialState(): State {
     discards,
     act2FreePlay: false,
     playOut: null,
+    freePlayHand: null,
+    freePlayDealer: null,
+    freePlayResult: null,
+    act2SelectedRank: null,
   };
 }

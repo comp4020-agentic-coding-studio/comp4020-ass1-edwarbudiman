@@ -8,6 +8,7 @@
  */
 
 import {
+  drawCard,
   freshShoe,
   makeRng,
   playOut,
@@ -16,6 +17,7 @@ import {
   SEED,
   type DealModel,
   type Decision,
+  type Rank,
   type Table,
 } from "../engine/index.ts";
 import { OPENING_HAND, OPENING_UPCARD, PLAYOUT_TRIALS, type State } from "./state.ts";
@@ -105,9 +107,129 @@ export function setModel(state: State, model: DealModel): State {
   return { ...state, model };
 }
 
-/** Act 2 opens locked to the Deal Model alone; this is "Unlock free play". */
+/**
+ * A generator seeded from `SEED` plus how many cards have already left the
+ * Shoe this session, rather than a module-level `Rng` held across calls.
+ *
+ * `render(state)` must stay pure and reproducible (the resize-safety contract
+ * in `spec/contracts.test.ts` depends on calling it twice on the same `State`
+ * and getting identical output back), and free play deals repeatedly — every
+ * hand, every Hit, every Stand — from the same running session. A hidden
+ * mutable generator would make each of those calls depend on how many times
+ * the module has been used before, which is not part of `State` at all: two
+ * sessions that reached the identical `State` by different paths could then
+ * render differently, and a test could not reconstruct what a transition did
+ * from its input alone. Deriving the seed from `state.discards.length`
+ * instead means the same `State`, dealt from again, always deals the same
+ * cards — and successive deals within one session still advance through a
+ * different part of the generator's sequence, because the Shoe has
+ * genuinely changed size by the time the next one runs.
+ */
+function freePlayRng(state: State) {
+  return makeRng(SEED + state.discards.length);
+}
+
+/**
+ * Deals one free-play hand from the Shoe the visitor has been playing from:
+ * two cards to the visitor, one upcard to the dealer — the same shape as
+ * Act 1's opening, but drawn from wherever the Shoe currently stands rather
+ * than a fresh one. Every card dealt updates the Shoe, the discards, the
+ * Running Count and its high-water mark, exactly like `dealBeat3` does for
+ * Act 1's single dealt hand.
+ */
+function dealFreePlayHand(state: State): State {
+  const rng = freePlayRng(state);
+  let shoe = state.shoe;
+  const hand: Rank[] = [];
+
+  for (let i = 0; i < 2; i++) {
+    const drawn = drawCard(shoe, state.model, rng);
+    hand.push(drawn.rank);
+    shoe = drawn.shoe;
+  }
+  const upcard = drawCard(shoe, state.model, rng);
+  shoe = upcard.shoe;
+
+  const dealt = [...hand, upcard.rank];
+  const discards = [...state.discards, ...dealt];
+  const count = state.runningCount + runningCount(dealt);
+
+  return {
+    ...state,
+    shoe,
+    discards,
+    runningCount: count,
+    runningCountHighWaterMark: Math.max(state.runningCountHighWaterMark, count),
+    freePlayHand: hand,
+    freePlayDealer: [upcard.rank],
+    freePlayResult: null,
+  };
+}
+
+/** Deals free play's first hand. Also used, under the name "Next hand", to
+ *  deal every hand after the one before it settles — dealing a hand is the
+ *  same act each time, whichever button asked for it. */
+export function dealHand(state: State): State {
+  return dealFreePlayHand(state);
+}
+
+/** The "Next hand" button once a free-play hand has settled. */
+export function nextHand(state: State): State {
+  return dealFreePlayHand(state);
+}
+
+/**
+ * Hit or Stand for the current free-play hand: carries it to settlement via
+ * the same `playOut` beat 2 -> beat 3 already uses, against the Shoe the
+ * visitor has actually been depleting. Only the cards this deal actually
+ * adds are folded into the Shoe, the discards and the Running Count — the
+ * hand's own two cards and the dealer's upcard are already accounted for by
+ * `dealFreePlayHand`.
+ */
+function settleFreePlayHand(state: State, decision: Decision): State {
+  const hand = state.freePlayHand;
+  const dealer = state.freePlayDealer;
+  if (!hand || !dealer) return state;
+
+  const table: Table = { hand, dealer, shoe: state.shoe, model: state.model };
+  const result = playOut(table, decision, freePlayRng(state));
+
+  const dealtToPlayer = result.playerRanks.slice(hand.length);
+  const dealtToDealer = result.dealerRanks.slice(dealer.length);
+  const dealt = [...dealtToPlayer, ...dealtToDealer];
+
+  const shoe = removeCards(state.shoe, dealt);
+  const discards = [...state.discards, ...dealt];
+  const count = state.runningCount + runningCount(dealt);
+
+  return {
+    ...state,
+    shoe,
+    discards,
+    runningCount: count,
+    runningCountHighWaterMark: Math.max(state.runningCountHighWaterMark, count),
+    freePlayResult: result,
+  };
+}
+
+export function hitFreePlay(state: State): State {
+  return settleFreePlayHand(state, "hit");
+}
+
+export function standFreePlay(state: State): State {
+  return settleFreePlayHand(state, "stand");
+}
+
+/** Act 2's Detail slot: pins whichever rank the visitor last selected. */
+export function selectRank(state: State, rank: Rank): State {
+  return { ...state, act2SelectedRank: rank };
+}
+
+/** Act 2 opens locked to the Deal Model alone; this is "Unlock free play" —
+ *  and, story 59, free play deals its first hand the moment it unlocks
+ *  rather than leaving the visitor looking at an empty table. */
 export function unlockFreePlay(state: State): State {
-  return { ...state, act2FreePlay: true };
+  return dealFreePlayHand({ ...state, act2FreePlay: true });
 }
 
 /** Drives the Play-out counter climbing toward 1,000 as the distribution fills. */

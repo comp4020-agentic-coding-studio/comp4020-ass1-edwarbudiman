@@ -4,29 +4,38 @@
  * Opens LOCKED: the same hand the visitor just played (`state.hand`), with
  * the Deal Model as the only thing that moves. Story 21 (revised) — the hand
  * is held constant for this opening only, not for the whole Act. Free play
- * (a later ticket) unlocks once the visitor clicks through; until it does,
- * `renderFreePlayPlaceholder` stands in for it.
+ * unlocks once the visitor clicks through (`renderFreePlay`): hands keep
+ * dealing from the same Shoe under whichever Deal Model is selected, and the
+ * Shoe, discards and Running Count all keep accumulating rather than
+ * resetting (story 29).
  *
- * See CONTEXT.md ("Deal Model", "Finite Shoe", "Independent Draw", "Shoe")
- * and `.scratch/blackjack-explainer/design.md`'s Flow and Components.
+ * See CONTEXT.md ("Deal Model", "Finite Shoe", "Independent Draw", "Shoe",
+ * "Running Count", "High-water mark") and
+ * `.scratch/blackjack-explainer/design.md`'s Flow and Components.
  */
 
 import {
+  bustSplit,
   discarded,
   drawProbability,
   drawWeights,
   fullRank,
   handTotal,
+  hiLoValue,
   RANKS,
   type DealModel,
+  type PlayOut,
   type Rank,
   type Shoe,
+  type Split,
 } from "../../engine/index.ts";
-import { formatCount, formatPercent } from "../format.ts";
+import { formatCount, formatPercent, formatSignedCount } from "../format.ts";
 import { actionButton, escapeHtml, section } from "../render.ts";
 import type { State } from "../state.ts";
 import { axisRow } from "../views/axis.ts";
-import { handHtml, rankCards } from "../views/card.ts";
+import { faceDownCard, handHtml, rankCards } from "../views/card.ts";
+import { countRulePanelHtml } from "../views/count-readout.ts";
+import { discardTrayHtml } from "../views/discard-tray.ts";
 import { tableHtml } from "../views/table.ts";
 
 const ACT_2_HEADING = "Two kinds of blackjack";
@@ -83,13 +92,15 @@ function modelButton(
 }
 
 /**
- * The composition chart: counts, not probability, on the shared thirteen-rank
- * axis. `drawWeights` is what makes switching the Deal Model recompute this —
- * under Independent Draw it hands back a fresh composition regardless of what
- * has actually left the Shoe, so the bars snap to a full rank and stay there
- * (docs/adr/0003: "Act 2 charts cards remaining per rank, not probability").
+ * The bars and full-rank reference line shared by both the locked opening's
+ * static chart and free play's clickable one: counts, not probability, on
+ * the shared thirteen-rank axis. `drawWeights` is what makes switching the
+ * Deal Model recompute this — under Independent Draw it hands back a fresh
+ * composition regardless of what has actually left the Shoe, so the bars
+ * snap to a full rank and stay there (docs/adr/0003: "Act 2 charts cards
+ * remaining per rank, not probability").
  */
-function compositionChart(state: State): string {
+function compositionBars(state: State): string {
   const weights = drawWeights(state.shoe, state.model);
   const full = fullRank(state.shoe);
   const counts = RANKS.map((rank) => weights[rank]);
@@ -105,17 +116,39 @@ function compositionChart(state: State): string {
     { className: "axis-bars" },
   );
 
-  // The thinnest rank is marked in the bar's weight, not with `aria-pressed`:
-  // that attribute belongs to toggle buttons, and on a label it announces a
-  // pressed state that does not exist. The slot below names the rank in
-  // words, which is the text equivalent that actually carries.
+  return `<p class="axis-full-label">${full} — a full rank</p>` + bars;
+}
+
+/**
+ * The locked opening's composition chart: `compositionBars` plus a plain
+ * rank label row. The thinnest rank is marked in the bar's weight, not with
+ * `aria-pressed`: that attribute belongs to toggle buttons, and on a label
+ * with nothing to toggle it would announce a pressed state that does not
+ * exist. The slot below names the rank in words instead, which is the text
+ * equivalent that actually carries.
+ */
+function compositionChart(state: State): string {
   const labels = axisRow(
     RANKS.map((rank) => `<div class="draw">${escapeHtml(rank)}</div>`),
   );
+  return compositionBars(state) + labels;
+}
 
-  return (
-    `<p class="axis-full-label">${full} — a full rank</p>` + bars + labels
+/**
+ * Free play's composition chart: the same bars, but every rank label is now
+ * a real `<button>` selecting that rank for the Detail slot below — here
+ * `aria-pressed` is honest, because the label really is a toggle.
+ */
+function compositionChartInteractive(state: State, selected: Rank): string {
+  const labels = axisRow(
+    RANKS.map(
+      (rank) =>
+        `<button class="draw" type="button" data-action="select-rank" ` +
+        `data-arg="${escapeHtml(rank)}" aria-pressed="${rank === selected}">` +
+        `${escapeHtml(rank)}</button>`,
+    ),
   );
+  return compositionBars(state) + labels;
 }
 
 /**
@@ -210,20 +243,262 @@ function renderLockedOpening(state: State): string {
 }
 
 /**
- * Free play itself is a later ticket. This is only the acknowledgement that
- * the visitor unlocked it — no play happens here yet.
+ * Free play's Detail slot: pinned under the axis rather than a popover,
+ * because these numbers get compared across all thirteen ranks in a row
+ * (design.md's rationale for keeping it a slot). Shows cards left, the exact
+ * chance next, what the chance was against a fresh Shoe, and an expectation
+ * derived from that same exact arithmetic — "about N in every 1,000 draws".
+ * That row is worded as a forward-looking expectation, never as a tally: no
+ * 1,000 draws have actually happened, only one Shoe's arithmetic has been
+ * scaled up to be legible, and any wording implying otherwise would read as
+ * a record of an event that never occurred.
  */
-function renderFreePlayPlaceholder(state: State): string {
+function detailSlotHtml(state: State, rank: Rank): string {
+  const full = fullRank(state.shoe);
+  const before = full / state.shoe.size;
+  const after = drawProbability(state.shoe, rank, state.model);
+  const left = state.shoe.composition[rank];
+  const expectation = Math.round(after * 1000);
+
+  return (
+    `<div class="slot">` +
+    `<p class="slot-rank">${escapeHtml(slotHeading(rank))}</p>` +
+    `<dl>` +
+    `<dt>Left in shoe</dt>` +
+    `<dd>${left} of ${full}</dd>` +
+    `<dt>Chance next</dt>` +
+    `<dd>${formatPercent(after)}</dd>` +
+    `<dt>Was</dt>` +
+    `<dd>${formatPercent(before)} — ${full} of ${state.shoe.size}</dd>` +
+    `<dt class="expectation">Expect</dt>` +
+    `<dd class="expectation">about ${formatCount(expectation)} in every 1,000 draws</dd>` +
+    `</dl>` +
+    `</div>`
+  );
+}
+
+/**
+ * The odds pair (design.md -> Components -> "Odds pair"), used here as the
+ * LIVE next-Draw survive/bust chance for the hand actually being held —
+ * story 60 — so the composition chart reads as being about this hand, not
+ * an abstract Shoe. Copy differs from Act 1 beat 4's reuse of the same
+ * `.odds` markup ("your hit survived") because there is no hit to look back
+ * on here — only ever a hand still in front of the visitor.
+ */
+function oddsPairHtml(split: Split): string {
+  return (
+    `<dl class="odds">` +
+    `<div><dt>Next card survives</dt>` +
+    `<dd>${formatPercent(split.surviveChance)}</dd></div>` +
+    `<div class="miss"><dt>Next card busts</dt>` +
+    `<dd>${formatPercent(split.bustChance)}</dd></div>` +
+    `</dl>`
+  );
+}
+
+/**
+ * The persistent readout beside the odds pair (design.md's "Count readout").
+ * Deliberately NOT `views/count-readout.ts`'s `countReadoutHtml` — that
+ * helper's "New · from here on" flag is Act 1 beat 4's one-time
+ * introduction, and by Act 2 the readout has already been on screen for a
+ * while (design.md: "introduced at the end of Act 1 ... stays on screen from
+ * there"). `countRulePanelHtml`'s `?` panel IS reused as-is, at the same
+ * `id="how-count"` every other beat targets, since `render(state)` only ever
+ * mounts one Act's markup at a time and the ids never collide in the DOM.
+ */
+function countReadoutHtml(state: State): string {
+  return (
+    `<p class="readout">` +
+    `<span>Running count</span>` +
+    `<b>${escapeHtml(formatSignedCount(state.runningCount))}</b>` +
+    `<button class="why" type="button" popovertarget="how-count" ` +
+    `aria-label="How the running count works">?</button>` +
+    `<span class="spacer"></span>` +
+    `<span>Shoe <b>${escapeHtml(formatCount(state.shoe.remaining))}</b></span>` +
+    `</p>`
+  );
+}
+
+/**
+ * Story 32: the Hi-Lo value of the card that just left, shown beside the
+ * readout rather than only inside the `?` panel — so the rule is learned by
+ * watching it get applied to a real card, not only read as an abstract
+ * table.
+ */
+function lastCardHiLoHtml(state: State): string {
+  const last = state.discards[state.discards.length - 1];
+  if (!last) return "";
+  const value = hiLoValue(last);
+  return (
+    `<p class="data">Last card out: <b>${escapeHtml(last)}</b> · Hi-Lo ` +
+    `${escapeHtml(formatSignedCount(value))}</p>`
+  );
+}
+
+/**
+ * Stories 33/34 — load-bearing, and never behind a click. A rising Running
+ * Count describes the Shoe that is left, not the next card: it says tens and
+ * aces are now over-represented in what remains, which favours the visitor
+ * across many hands, and it is explicitly NOT a prediction of what comes up
+ * next. Copy that blurred that line would teach the gambler's fallacy in the
+ * middle of the one page arguing against it (CONTEXT.md's "Running Count").
+ */
+const RUNNING_COUNT_WARNING =
+  "A rising running count means the shoe left behind is richer in tens and " +
+  "aces than a fresh one — good for you across many hands to come. It does " +
+  "not say anything about the very next card. Treating it as a prediction " +
+  "is the mistake this page exists to argue against.";
+
+/**
+ * The copy for a settled free-play hand. `hitDrew` distinguishes "you drew a
+ * card" from "you stood", the same distinction Act 1 beat 3's
+ * `settlementCopy` makes for the same reason: Stand never adds a card, and
+ * the copy must not imply one was drawn when it wasn't.
+ */
+function freePlaySettlementCopy(result: PlayOut, hitDrew: boolean): string {
+  if (result.playerBusted) {
+    const drawnRank = result.playerRanks[result.playerRanks.length - 1];
+    return `You drew a ${drawnRank} and busted with ${result.playerTotal}. The hand is lost.`;
+  }
+
+  const yourHand = hitDrew
+    ? `You drew a ${result.playerRanks[result.playerRanks.length - 1]} and made ${result.playerTotal}`
+    : `You stood on ${result.playerTotal}`;
+  const dealerMade = result.dealerBusted
+    ? `the dealer busted, making ${result.dealerTotal}`
+    : `the dealer made ${result.dealerTotal}`;
+
+  if (result.settlement === "won") return `${yourHand}, and ${dealerMade} — you won.`;
+  if (result.settlement === "push") {
+    return `${yourHand}, and ${dealerMade} the same — the hand pushes.`;
+  }
+  return `${yourHand}, and ${dealerMade} — enough to beat you.`;
+}
+
+/**
+ * The current free-play hand: either a hand still awaiting a Decision (Hit
+ * or Stand, exactly as Act 1 offers them — one Decision per hand, the seam
+ * this whole Explainer holds to), or the just-settled result with a "Next
+ * hand" button. `dealFreePlayHand` (in `transitions.ts`) guarantees a hand
+ * exists here the moment free play unlocks, but a `null` `freePlayHand` is
+ * still handled rather than assumed away, since `render` must stay total
+ * over whatever `State` it is handed.
+ */
+function renderFreePlayHand(state: State): string {
+  const result = state.freePlayResult;
+  const hand = state.freePlayHand ?? [];
+  const dealer = state.freePlayDealer ?? [];
+
+  if (result) {
+    const hitDrew = result.playerRanks.length > hand.length;
+    const table = tableHtml([
+      {
+        label: "Dealer",
+        handHtml: handHtml(
+          rankCards(result.dealerRanks, { bustedLastCard: result.dealerBusted }),
+        ),
+        total: result.dealerTotal,
+        busted: result.dealerBusted,
+      },
+      {
+        label: "You",
+        handHtml: handHtml(
+          rankCards(result.playerRanks, { bustedLastCard: result.playerBusted }),
+        ),
+        total: result.playerTotal,
+        busted: result.playerBusted,
+      },
+    ]);
+
+    return (
+      table +
+      `<p class="data">${escapeHtml(freePlaySettlementCopy(result, hitDrew))}</p>` +
+      actionButton("next-hand", "Next hand", { className: "btn btn--advance" })
+    );
+  }
+
+  const total = handTotal(hand);
+  const dealerTotal = handTotal(dealer);
+  const table = tableHtml([
+    {
+      label: "Dealer",
+      handHtml: handHtml([...rankCards(dealer), faceDownCard()]),
+      total: dealerTotal.total,
+    },
+    {
+      label: "You",
+      handHtml: handHtml(rankCards(hand, { bustedLastCard: total.busted })),
+      total: total.total,
+      busted: total.busted,
+    },
+  ]);
+
+  return (
+    table +
+    `<div class="decision">` +
+    actionButton("hit-free-play", "Hit") +
+    actionButton("stand-free-play", "Stand") +
+    `</div>`
+  );
+}
+
+/**
+ * Free play: the same Shoe and Deal Model the locked opening just compared,
+ * now dealing hand after hand while the Shoe depletes, the discard tray
+ * fills, and the Running Count moves toward its high-water mark (story 29).
+ * The odds pair and Detail slot read whatever hand is actually current —
+ * `result?.playerRanks ?? freePlayHand` — never `state.hand`, the frozen
+ * hand the locked opening compares Deal Models against (story 60).
+ */
+function renderFreePlay(state: State): string {
+  const currentHand = state.freePlayResult?.playerRanks ?? state.freePlayHand ?? [];
+  const selectedRank = state.act2SelectedRank ?? mostDepletedRank(state.shoe);
+  const split = bustSplit(currentHand, state.shoe, state.model);
+  const remainingPercent = (state.shoe.remaining / state.shoe.size) * 100;
+
   return section(
     "act-2",
     `<p class="eyebrow">Act 2</p>` +
       `<h2>${escapeHtml(ACT_2_HEADING)}</h2>` +
-      `<p class="lede">Free play, from this same Shoe and Running Count, is on its way.</p>` +
-      `<p class="data">Deal Model: ${escapeHtml(state.model)}</p>`,
+      renderFreePlayHand(state) +
+      `<div class="spread">` +
+      `<div>` +
+      `<div class="models">` +
+      modelButton(
+        "finite-shoe",
+        state.model,
+        "Finite shoe",
+        "Dealt cards are gone. What has appeared changes what can appear next.",
+      ) +
+      modelButton(
+        "independent-draw",
+        state.model,
+        "Independent draw",
+        "Every card from the same unchanging distribution. The past carries nothing.",
+      ) +
+      `</div>` +
+      `<div class="meter-head"><span>Cards remaining</span><b>${formatCount(state.shoe.remaining)}</b></div>` +
+      `<div class="shoe">` +
+      `<span class="remaining" style="flex: 0 0 ${remainingPercent}%"></span>` +
+      `<span class="spent"></span>` +
+      `</div>` +
+      discardTrayHtml(state.shoe) +
+      `</div>` +
+      `<div>` +
+      `<h3>How many of each rank are left</h3>` +
+      compositionChartInteractive(state, selectedRank) +
+      oddsPairHtml(split) +
+      countReadoutHtml(state) +
+      lastCardHiLoHtml(state) +
+      `<p class="lede">${RUNNING_COUNT_WARNING}</p>` +
+      detailSlotHtml(state, selectedRank) +
+      `</div>` +
+      `</div>` +
+      countRulePanelHtml(),
   );
 }
 
 export function renderAct2(state: State): string {
-  if (state.act2FreePlay) return renderFreePlayPlaceholder(state);
+  if (state.act2FreePlay) return renderFreePlay(state);
   return renderLockedOpening(state);
 }
