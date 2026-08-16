@@ -38,10 +38,28 @@ function actFromHash(hash: string): State["act"] {
   return 1;
 }
 
+// The nav lives in static markup outside the mount point (`index.html`), so
+// the seam cannot mark the current Act and must not try to: `render(state)`
+// only ever returns the current Act's own `<section>`. This is shell logic,
+// same footing as the theme toggle above.
+const navLinks = document.querySelectorAll<HTMLAnchorElement>("nav a");
+
+function updateNavCurrent(): void {
+  const currentHash = `#act-${state.act}`;
+  for (const link of navLinks) {
+    if (link.getAttribute("href") === currentHash) {
+      link.setAttribute("aria-current", "step");
+    } else {
+      link.removeAttribute("aria-current");
+    }
+  }
+}
+
 /** Replacing the markup destroys focus, so every re-render restores it: to
  *  the control just activated where it still exists, otherwise to the Act
  *  section that changed (`tabindex="-1"` in `render.ts`'s output). */
 function rerender(): void {
+  updateNavCurrent();
   if (!mount) return;
 
   const active = document.activeElement;
@@ -129,6 +147,7 @@ function maybeStartClimb(): void {
 // A refresh or a pasted link lands in the right Act.
 state = goToAct(state, actFromHash(location.hash));
 if (mount) mount.innerHTML = render(state);
+updateNavCurrent();
 maybeStartClimb();
 
 // ---- theme toggle: lives outside the seam, touches no State ----

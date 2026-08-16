@@ -36,7 +36,10 @@ export function faceUpCard(rank: Rank, options: FaceUpCardOptions = {}): string 
  * because as far as `State` is concerned the card has not been dealt.
  */
 export function faceDownCard(): string {
-  return `<div class="card card--back" aria-label="Face-down card"></div>`;
+  // `role="img"` is load-bearing, not decorative: an `aria-label` on a bare
+  // `<div>` (no implicit role) is not reliably exposed to the accessibility
+  // tree, so without it the label never gets announced.
+  return `<div class="card card--back" role="img" aria-label="Face-down card"></div>`;
 }
 
 export interface RankCardsOptions {

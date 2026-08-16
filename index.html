@@ -45,6 +45,55 @@
       </noscript>
 
       <main id="acts"></main>
+
+      <!-- The reference drawer: same on every Act, needs no State, so it is
+           static markup rather than something `render(state)` produces (see
+           `.scratch/blackjack-explainer/issues/09-popovers-and-reference.md`).
+           Terms are still defined inline at first use elsewhere on the page;
+           this is for the second time a visitor has forgotten one. -->
+      <details class="reference">
+        <summary>Reference</summary>
+        <dl>
+          <dt>Shoe</dt>
+          <dd>
+            The finite collection of cards a Finite Shoe deals from. Has a
+            size, a remaining count, and a composition.
+          </dd>
+
+          <dt>Upcard</dt>
+          <dd>
+            The one dealer card shown face up before you decide. The
+            dealer's second card stays hidden until your hand is settled.
+          </dd>
+
+          <dt>Push</dt>
+          <dd>
+            A Play-out that settles even: your total and the dealer's tie,
+            and nothing changes hands. A push proves the Decision no more
+            right than a loss would prove it wrong.
+          </dd>
+
+          <dt>Draw</dt>
+          <dd>
+            A single next card, considered on its own — what the Act 1 strip
+            shows for all thirteen possible next cards against your hand.
+          </dd>
+
+          <dt>Play-out</dt>
+          <dd>
+            One hand carried from your Decision through the dealer's turn to
+            settlement. Answers what the Decision paid, not what the next
+            card was.
+          </dd>
+
+          <dt>Running Count</dt>
+          <dd>
+            The Hi-Lo tally of cards that have left the Shoe: low cards
+            raise it, tens and aces lower it. Describes what remains in the
+            Shoe, never what comes next.
+          </dd>
+        </dl>
+      </details>
     </div>
     <script type="module" src="./main.ts"></script>
   </body>
